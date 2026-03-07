@@ -43,15 +43,22 @@ function getDay(date) {
   return date.getDay();
 }
 
-async function generateSchedule(people, year, month, settings, customScores) {
-  const schedule = {};
+async function generateSchedule(
+  people,
+  year,
+  month,
+  settings,
+  customScores,
+  maxSolutions = 5,
+) {
+  const schedules = [];
 
-  if (people.length === 0) return schedule;
+  if (people.length === 0) return schedules;
 
   const z3 = await getZ3();
   const { Context } = z3;
   // Use Solver (not Optimize) — much faster. Fairness via direct constraints.
-  const { Solver, Int, Sum, If } = new Context("main");
+  const { Solver, Int, Sum, If, Or } = new Context("main");
 
   const startDate = new Date(year, month, 1);
   const totalDays = getDaysInMonth(startDate);
@@ -161,43 +168,66 @@ async function generateSchedule(people, year, month, settings, customScores) {
     });
   }
 
-  // Solve
-  console.log("[worker] calling solver.check()...");
-  const status = await solver.check();
-  console.log("[worker] solver.check() returned:", status);
-
-  if (status === "sat") {
-    const model = solver.model();
-    for (let d = 0; d < totalDays; d++) {
-      const currentDate = new Date(year, month, d + 1);
-      const dateString = formatDate(currentDate);
-      const personIdx = Number(model.eval(dayVars[d]).toString());
-      schedule[dateString] = people[personIdx].id;
-    }
-  } else {
-    console.warn(
-      "[worker] Z3 returned",
+  // Solve loop for multiple solutions
+  for (let i = 0; i < maxSolutions; i++) {
+    console.log(`[worker] calling solver.check() for solution ${i + 1}...`);
+    const status = await solver.check();
+    console.log(
+      `[worker] solver.check() for solution ${i + 1} returned:`,
       status,
-      "- no valid schedule with current constraints.",
     );
+
+    if (status === "sat") {
+      const model = solver.model();
+      const schedule = {};
+      const block = [];
+      for (let d = 0; d < totalDays; d++) {
+        const currentDate = new Date(year, month, d + 1);
+        const dateString = formatDate(currentDate);
+        const val = model.eval(dayVars[d]);
+        const personIdx = Number(val.toString());
+        schedule[dateString] = people[personIdx].id;
+        block.push(dayVars[d].neq(val));
+      }
+      schedules.push(schedule);
+      solver.add(Or(...block));
+      self.postMessage({
+        type: "progress",
+        current: i + 1,
+        total: maxSolutions,
+      });
+    } else {
+      if (i === 0) {
+        console.warn(
+          "[worker] Z3 returned",
+          status,
+          "- no valid schedule with current constraints.",
+        );
+      } else {
+        console.log(`[worker] No more solutions found after ${i}.`);
+      }
+      break;
+    }
   }
 
-  return schedule;
+  return schedules;
 }
 
 self.onmessage = async (e) => {
   console.log("[worker] received message", e.data);
   const { people, year, month, settings, customScores } = e.data;
   try {
-    const schedule = await generateSchedule(
+    const schedules = await generateSchedule(
       people,
       year,
       month,
       settings,
       customScores,
+      5, // Default to 5 solutions
     );
-    self.postMessage({ ok: true, schedule });
+    self.postMessage({ ok: true, schedules });
   } catch (err) {
+    console.error("[worker] Error during generation:", err);
     self.postMessage({ ok: false, error: String(err) });
   }
 };

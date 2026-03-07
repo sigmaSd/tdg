@@ -34,8 +34,8 @@
     "tailwindcss": "npm:tailwindcss@^4.2.1",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.2.1",
     "z3-solver": "npm:z3-solver@4.16.0",
-    "@sigmasd/vite-plugin-z3": "jsr:@sigmasd/vite-plugin-z3@^0.5.1",
-    "@sigmasd/vite-plugin-z3/runtime": "jsr:@sigmasd/vite-plugin-z3@^0.5.1/runtime"
+    "@sigmasd/vite-plugin-z3": "jsr:@sigmasd/vite-plugin-z3@^0.6.0",
+    "@sigmasd/vite-plugin-z3/runtime": "jsr:@sigmasd/vite-plugin-z3@^0.6.0/runtime"
   },
   "compilerOptions": {
     "lib": [

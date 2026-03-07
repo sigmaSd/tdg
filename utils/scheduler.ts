@@ -31,17 +31,23 @@ export function generateSchedule(
     fairWeekend: false,
   },
   customScores: DayScores = {},
-): Promise<Schedule> {
+  onProgress?: (current: number, total: number) => void,
+): Promise<Schedule[]> {
   if (people.length === 0 || typeof document === "undefined") {
-    return Promise.resolve({} as Schedule);
+    return Promise.resolve([] as Schedule[]);
   }
 
   return new Promise((resolve, reject) => {
     const worker = new Worker("/scheduler-worker.js");
     worker.onmessage = (e) => {
+      if (e.data.type === "progress") {
+        if (onProgress) onProgress(e.data.current, e.data.total);
+        return;
+      }
+
       worker.terminate();
       if (e.data.ok) {
-        resolve(e.data.schedule);
+        resolve(e.data.schedules);
       } else {
         console.error("Scheduler worker error:", e.data.error);
         reject(new Error(e.data.error));

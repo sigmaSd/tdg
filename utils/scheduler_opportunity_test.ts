@@ -29,7 +29,7 @@ Deno.test("Opportunity Tie-breaker - Prioritizes person with fewer total chances
   const BOB_FULL = { ...BOB };
 
   // Run the generator
-  const schedule = await generateSchedule(
+  const [schedule] = await generateSchedule(
     [ALICE_LIMITED, BOB_FULL],
     2026,
     2,

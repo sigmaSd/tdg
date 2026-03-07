@@ -13,7 +13,7 @@ Deno.test("Recency Tie-breaker - Alternates when day counts are equal", async ()
   };
 
   // 4 days in March 2026
-  const schedule = await generateSchedule([ALICE, BOB], 2026, 2, settings);
+  const [schedule] = await generateSchedule([ALICE, BOB], 2026, 2, settings);
 
   const dates = ["2026-03-01", "2026-03-02", "2026-03-03", "2026-03-04"];
   const sequence = dates.map((d) => schedule[d]);
@@ -60,7 +60,7 @@ Deno.test("Recency Tie-breaker - Handles 'catching up' with recency", async () =
     color: "green",
   };
 
-  const schedule = await generateSchedule(
+  const [schedule] = await generateSchedule(
     [ALICE, BOB, CHARLIE],
     2026,
     2,
