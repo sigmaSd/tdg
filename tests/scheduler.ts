@@ -5,8 +5,8 @@ import { browserTest } from "./utils.ts";
 browserTest(
   "generateSchedule - empty people returns empty schedule",
   async () => {
-    const schedules = await generateSchedule([], 2026, 0);
-    assertEquals(schedules, []);
+    const schedule = await generateSchedule([], 2026, 0);
+    assertEquals(schedule, null);
   },
 );
 
@@ -22,7 +22,7 @@ browserTest("generateSchedule - respects unavailability", async () => {
   ];
 
   // Generate for Jan 2026
-  const [schedule] = await generateSchedule(people, 2026, 0); // Month 0 is Jan
+  const schedule = (await generateSchedule(people, 2026, 0))!; // Month 0 is Jan
 
   // Jan 1st is unavailable for Alice, so Bob MUST be assigned (or empty if no one available)
   // Bob is available.
@@ -40,7 +40,7 @@ browserTest("generateSchedule - fair distribution", async () => {
 
   // Jan 2026 has 31 days.
   // 31 / 2 = 15.5. So one gets 15, one gets 16.
-  const [schedule] = await generateSchedule(people, 2026, 0);
+  const schedule = (await generateSchedule(people, 2026, 0))!;
 
   const counts: Record<string, number> = { "1": 0, "2": 0 };
   Object.values(schedule).forEach((id) => counts[id]++);
@@ -59,7 +59,7 @@ browserTest("generateSchedule - partial availability", async () => {
   ];
   // Make C unavailable for 30 days?
   // Let's just run basic check
-  const [schedule] = await generateSchedule(people, 2026, 0);
+  const schedule = (await generateSchedule(people, 2026, 0))!;
 
   const counts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
   Object.values(schedule).forEach((id) => counts[id]++);

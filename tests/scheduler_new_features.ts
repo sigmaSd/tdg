@@ -22,7 +22,7 @@ browserTest("generateSchedule - avoidConsecutive", async () => {
     fairWeekend: false,
   };
 
-  const [schedule] = await generateSchedule(PEOPLE, 2026, 0, settings); // Jan 2026 (31 days)
+  const schedule = (await generateSchedule(PEOPLE, 2026, 0, settings))!; // Jan 2026 (31 days)
   const dates = Object.keys(schedule).sort();
 
   for (let i = 1; i < dates.length; i++) {
@@ -44,7 +44,7 @@ browserTest("generateSchedule - fairWeekend", async () => {
     fairWeekend: true,
   };
 
-  const [schedule] = await generateSchedule(PEOPLE, 2026, 0, settings);
+  const schedule = (await generateSchedule(PEOPLE, 2026, 0, settings))!;
 
   const satCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
   const sunCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
@@ -83,13 +83,13 @@ browserTest("generateSchedule - scoring system (preferFairScore)", async () => {
     "2026-01-01": 10,
   };
 
-  const [schedule] = await generateSchedule(
+  const schedule = (await generateSchedule(
     PEOPLE,
     2026,
     0,
     settings,
     customScores,
-  );
+  ))!;
 
   const scoreCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
   const dayCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };

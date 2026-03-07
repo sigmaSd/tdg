@@ -18,7 +18,7 @@ browserTest(
 
     // March 2026 has 4 Saturdays and 5 Sundays.
     // With 2 people, each should have 2 Saturdays and 2-3 Sundays.
-    const [schedule] = await generateSchedule([ALICE, BOB], 2026, 2, settings);
+    const schedule = (await generateSchedule([ALICE, BOB], 2026, 2, settings))!;
 
     const satCounts: Record<string, number> = { "1": 0, "2": 0 };
     const sunCounts: Record<string, number> = { "1": 0, "2": 0 };
@@ -60,12 +60,12 @@ browserTest(
     const saturdays = ["2026-03-07", "2026-03-14", "2026-03-21", "2026-03-28"];
     const ALICE_NO_SAT = { ...ALICE, unavailable: saturdays };
 
-    const [schedule] = await generateSchedule(
+    const schedule = (await generateSchedule(
       [ALICE_NO_SAT, BOB],
       2026,
       2,
       settings,
-    );
+    ))!;
 
     const sunCounts: Record<string, number> = { "1": 0, "2": 0 };
 

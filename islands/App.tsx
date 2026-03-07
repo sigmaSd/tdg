@@ -36,8 +36,7 @@ const DEFAULT_SETTINGS: Settings = {
 export default function App() {
   const viewDate = useSignal(addMonths(new Date(), 1));
   const people = useSignal<Person[]>([]);
-  const schedules = useSignal<Schedule[]>([]);
-  const currentSolutionIndex = useSignal(0);
+  const schedule = useSignal<Schedule | null>(null);
   const isGenerating = useSignal(false);
   const progress = useSignal({ current: 0, total: 0 });
   const settings = useSignal<Settings>(DEFAULT_SETTINGS);
@@ -80,11 +79,9 @@ export default function App() {
     const savedMonth = localStorage.getItem("tdg-view-month");
     if (savedMonth) viewDate.value = parseISO(savedMonth);
 
-    const savedSchedules = localStorage.getItem("tdg-schedules");
-    if (savedSchedules) {
-      schedules.value = JSON.parse(savedSchedules);
-      const savedIdx = localStorage.getItem("tdg-solution-index");
-      if (savedIdx) currentSolutionIndex.value = Number(savedIdx);
+    const savedSchedule = localStorage.getItem("tdg-schedule");
+    if (savedSchedule) {
+      schedule.value = JSON.parse(savedSchedule);
     }
 
     initialized.value = true;
@@ -97,19 +94,14 @@ export default function App() {
       localStorage.setItem("tdg-settings", JSON.stringify(settings.value));
       localStorage.setItem("tdg-scores", JSON.stringify(customScores.value));
       localStorage.setItem("tdg-view-month", viewDate.value.toISOString());
-      localStorage.setItem("tdg-schedules", JSON.stringify(schedules.value));
-      localStorage.setItem(
-        "tdg-solution-index",
-        currentSolutionIndex.value.toString(),
-      );
+      localStorage.setItem("tdg-schedule", JSON.stringify(schedule.value));
     }
   }, [
     people.value,
     settings.value,
     customScores.value,
     viewDate.value,
-    schedules.value,
-    currentSolutionIndex.value,
+    schedule.value,
     initialized.value,
   ]);
 
@@ -137,10 +129,10 @@ export default function App() {
     const month = viewDate.value.getMonth();
 
     isGenerating.value = true;
-    progress.value = { current: 0, total: 5 };
+    progress.value = { current: 0, total: 1 };
 
     try {
-      const newSchedules = await generateSchedule(
+      const newSchedule = await generateSchedule(
         people.value,
         year,
         month,
@@ -150,9 +142,7 @@ export default function App() {
           progress.value = { current, total };
         },
       );
-      console.log(`${newSchedules.length} schedules generated.`);
-      schedules.value = newSchedules;
-      currentSolutionIndex.value = 0;
+      schedule.value = newSchedule;
     } catch (err) {
       console.error("Failed to generate schedule:", err);
       const message = err instanceof Error ? err.message : String(err);
@@ -164,8 +154,7 @@ export default function App() {
 
   const changeMonth = (delta: number) => {
     viewDate.value = addMonths(viewDate.value, delta);
-    schedules.value = [];
-    currentSolutionIndex.value = 0;
+    schedule.value = null;
   };
 
   const handleToggleScore = (dateString: string) => {
@@ -179,7 +168,7 @@ export default function App() {
     };
   };
 
-  const currentSchedule = schedules.value[currentSolutionIndex.value] || {};
+  const currentSchedule = schedule.value || {};
 
   return (
     <div class="min-h-screen bg-gray-50 p-4 font-sans text-gray-900">
@@ -268,40 +257,6 @@ export default function App() {
                   )
                   : <span>Generate Schedule</span>}
               </button>
-
-              {schedules.value.length > 1 && (
-                <div class="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      currentSolutionIndex.value = Math.max(
-                        0,
-                        currentSolutionIndex.value - 1,
-                      )}
-                    disabled={currentSolutionIndex.value === 0}
-                    class="px-2 py-1 hover:bg-white rounded shadow-sm disabled:opacity-30"
-                  >
-                    Prev
-                  </button>
-                  <span class="text-sm font-medium px-2">
-                    Solution {currentSolutionIndex.value + 1} of{" "}
-                    {schedules.value.length}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      currentSolutionIndex.value = Math.min(
-                        schedules.value.length - 1,
-                        currentSolutionIndex.value + 1,
-                      )}
-                    disabled={currentSolutionIndex.value ===
-                      schedules.value.length - 1}
-                    class="px-2 py-1 hover:bg-white rounded shadow-sm disabled:opacity-30"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
             </div>
           </div>
 

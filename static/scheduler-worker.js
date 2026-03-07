@@ -35,10 +35,8 @@ async function generateSchedule(
   month,
   settings,
   customScores,
-  maxSolutions = 5,
 ) {
-  const schedules = [];
-  if (people.length === 0) return schedules;
+  if (people.length === 0) return null;
 
   const z3 = await getZ3();
   const { Context } = z3;
@@ -47,173 +45,151 @@ async function generateSchedule(
   const totalDays = getDaysInMonth(startDate);
   const n = people.length;
 
-  for (let solIdx = 0; solIdx < maxSolutions; solIdx++) {
-    const { Solver, Int } = new Context(`sol_${solIdx}`);
-    const dayVars = Array.from(
-      { length: totalDays },
-      (_, i) => Int.const(`day_${i + 1}`),
-    );
-    const solver = new Solver();
+  const { Solver, Int } = new Context("sol");
+  const dayVars = Array.from(
+    { length: totalDays },
+    (_, i) => Int.const(`day_${i + 1}`),
+  );
+  const solver = new Solver();
 
-    // 1. Hard Constraints (Only the strictly necessary ones)
-    for (let d = 0; d < totalDays; d++) {
-      const currentDate = new Date(year, month, d + 1);
-      const dateString = formatDate(currentDate);
+  // 1. Hard Constraints
+  for (let d = 0; d < totalDays; d++) {
+    const currentDate = new Date(year, month, d + 1);
+    const dateString = formatDate(currentDate);
 
-      solver.add(dayVars[d].ge(0));
-      solver.add(dayVars[d].lt(n));
+    solver.add(dayVars[d].ge(0));
+    solver.add(dayVars[d].lt(n));
 
-      people.forEach((person, idx) => {
-        if (person.unavailable.includes(dateString)) {
-          solver.add(dayVars[d].neq(idx));
-        }
-      });
-
-      if (settings.avoidConsecutive && d < totalDays - 1) {
-        solver.add(dayVars[d].neq(dayVars[d + 1]));
+    people.forEach((person, idx) => {
+      if (person.unavailable.includes(dateString)) {
+        solver.add(dayVars[d].neq(idx));
       }
+    });
+
+    if (settings.avoidConsecutive && d < totalDays - 1) {
+      solver.add(dayVars[d].neq(dayVars[d + 1]));
     }
+  }
 
-    // 2. Sequential Decision Making (Greedy with lookahead/fairness)
-    const currentSchedule = {};
-    const lastWorked = people.map(() => -100);
-    const currentCounts = people.map(() => 0);
-    const weekendCounts = people.map(() => ({ 0: 0, 6: 0 }));
-    const currentScores = people.map(() => 0);
+  // 2. Sequential Decision Making (Greedy)
+  const currentSchedule = {};
+  const lastWorked = people.map(() => -100);
+  const currentCounts = people.map(() => 0);
+  const weekendCounts = people.map(() => ({ 0: 0, 6: 0 }));
+  const currentScores = people.map(() => 0);
 
-    let possible = true;
-    for (let d = 0; d < totalDays; d++) {
-      const date = new Date(year, month, d + 1);
-      const dateString = formatDate(date);
-      const dayOfWeek = getDay(date);
-      const isSunday = dayOfWeek === 0;
-      const dayScore = customScores[dateString] ?? (isSunday ? 2 : 1);
+  for (let d = 0; d < totalDays; d++) {
+    const date = new Date(year, month, d + 1);
+    const dateString = formatDate(date);
+    const dayOfWeek = getDay(date);
+    const isSunday = dayOfWeek === 0;
+    const dayScore = customScores[dateString] ?? (isSunday ? 2 : 1);
 
-      const candidates = [];
-      for (let idx = 0; idx < n; idx++) {
-        // Basic eligibility check
-        if (people[idx].unavailable.includes(dateString)) continue;
+    const candidates = [];
+    for (let idx = 0; idx < n; idx++) {
+      if (people[idx].unavailable.includes(dateString)) continue;
+      if (
+        settings.avoidConsecutive && d > 0 &&
+        currentSchedule[formatDate(new Date(year, month, d))] ===
+          people[idx].id
+      ) continue;
+
+      let futureAvail = 0;
+      for (let f = d; f < totalDays; f++) {
         if (
-          settings.avoidConsecutive && d > 0 &&
-          currentSchedule[formatDate(new Date(year, month, d))] ===
-            people[idx].id
-        ) continue;
+          !people[idx].unavailable.includes(
+            formatDate(new Date(year, month, f + 1)),
+          )
+        ) futureAvail++;
+      }
 
-        // Calculate Opportunity (how many future available days for this person)
-        let futureAvail = 0;
+      let futureWeekendAvail = 0;
+      if (settings.fairWeekend && (dayOfWeek === 0 || dayOfWeek === 6)) {
         for (let f = d; f < totalDays; f++) {
+          const fd = new Date(year, month, f + 1);
           if (
-            !people[idx].unavailable.includes(
-              formatDate(new Date(year, month, f + 1)),
-            )
-          ) futureAvail++;
+            getDay(fd) === dayOfWeek &&
+            !people[idx].unavailable.includes(formatDate(fd))
+          ) futureWeekendAvail++;
         }
-
-        let futureWeekendAvail = 0;
-        if (settings.fairWeekend && (dayOfWeek === 0 || dayOfWeek === 6)) {
-          for (let f = d; f < totalDays; f++) {
-            const fd = new Date(year, month, f + 1);
-            if (
-              getDay(fd) === dayOfWeek &&
-              !people[idx].unavailable.includes(formatDate(fd))
-            ) futureWeekendAvail++;
-          }
-        }
-
-        candidates.push({
-          idx,
-          totalWorkload: currentCounts[idx],
-          weekendWorkload: settings.fairWeekend
-            ? (weekendCounts[idx][dayOfWeek] || 0)
-            : 0,
-          score: currentScores[idx],
-          recency: lastWorked[idx],
-          opportunity: futureAvail,
-          weekendOpportunity: futureWeekendAvail,
-        });
       }
 
-      // Sort by fairness and tie-breakers
-      candidates.sort((a, b) => {
-        // 1. Weekend Fairness (if applicable)
-        if (settings.fairWeekend && (dayOfWeek === 0 || dayOfWeek === 6)) {
-          if (a.weekendWorkload !== b.weekendWorkload) {
-            return a.weekendWorkload - b.weekendWorkload;
-          }
-          // Opportunity Tie-break for weekends
-          if (a.weekendOpportunity !== b.weekendOpportunity) {
-            return a.weekendOpportunity - b.weekendOpportunity;
-          }
-        }
-        // 2. Score Fairness
-        if (settings.enableScoring && settings.preferFairScore) {
-          if (Math.abs(a.score - b.score) > 1) return a.score - b.score;
-        }
-        // 3. Total Workload Fairness
-        if (a.totalWorkload !== b.totalWorkload) {
-          return a.totalWorkload - b.totalWorkload;
-        }
-        // 4. Opportunity Tie-break (Urgency)
-        if (a.opportunity !== b.opportunity) {
-          return a.opportunity - b.opportunity;
-        }
-        // 5. Recency Tie-break (Least recent)
-        return a.recency - b.recency;
+      candidates.push({
+        idx,
+        totalWorkload: currentCounts[idx],
+        weekendWorkload: settings.fairWeekend
+          ? (weekendCounts[idx][dayOfWeek] || 0)
+          : 0,
+        score: currentScores[idx],
+        recency: lastWorked[idx],
+        opportunity: futureAvail,
+        weekendOpportunity: futureWeekendAvail,
       });
+    }
 
-      let assigned = false;
-      for (const cand of candidates) {
-        solver.push();
-        solver.add(dayVars[d].eq(cand.idx));
-        if ((await solver.check()) === "sat") {
-          currentSchedule[dateString] = people[cand.idx].id;
-          lastWorked[cand.idx] = d;
-          currentCounts[cand.idx]++;
-          currentScores[cand.idx] += dayScore;
-          if (dayOfWeek === 0 || dayOfWeek === 6) {
-            weekendCounts[cand.idx][dayOfWeek]++;
-          }
-          assigned = true;
-          // No pop here, we keep the assignment for the rest of this solution
-          break;
-        } else {
-          solver.pop();
+    candidates.sort((a, b) => {
+      if (settings.fairWeekend && (dayOfWeek === 0 || dayOfWeek === 6)) {
+        if (a.weekendWorkload !== b.weekendWorkload) {
+          return a.weekendWorkload - b.weekendWorkload;
+        }
+        if (a.weekendOpportunity !== b.weekendOpportunity) {
+          return a.weekendOpportunity - b.weekendOpportunity;
         }
       }
+      if (settings.enableScoring && settings.preferFairScore) {
+        if (Math.abs(a.score - b.score) > 1) return a.score - b.score;
+      }
+      if (a.totalWorkload !== b.totalWorkload) {
+        return a.totalWorkload - b.totalWorkload;
+      }
+      if (a.opportunity !== b.opportunity) {
+        return a.opportunity - b.opportunity;
+      }
+      return a.recency - b.recency;
+    });
 
-      if (!assigned) {
-        possible = false;
+    let assigned = false;
+    for (const cand of candidates) {
+      solver.push();
+      solver.add(dayVars[d].eq(cand.idx));
+      if ((await solver.check()) === "sat") {
+        currentSchedule[dateString] = people[cand.idx].id;
+        lastWorked[cand.idx] = d;
+        currentCounts[cand.idx]++;
+        currentScores[cand.idx] += dayScore;
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          weekendCounts[cand.idx][dayOfWeek]++;
+        }
+        assigned = true;
         break;
+      } else {
+        solver.pop();
       }
     }
 
-    if (possible) {
-      schedules.push(currentSchedule);
-      if (solIdx === 0) break; // Greedy is deterministic for now
-    } else {
-      break;
-    }
+    if (!assigned) return null;
+
     self.postMessage({
       type: "progress",
-      current: solIdx + 1,
-      total: maxSolutions,
+      current: d + 1,
+      total: totalDays,
     });
   }
 
-  return schedules;
+  return currentSchedule;
 }
 
 self.onmessage = async (e) => {
   const { people, year, month, settings, customScores } = e.data;
   try {
-    const schedules = await generateSchedule(
+    const schedule = await generateSchedule(
       people,
       year,
       month,
       settings,
       customScores,
     );
-    self.postMessage({ ok: true, schedules });
+    self.postMessage({ ok: true, schedule });
   } catch (err) {
     self.postMessage({ ok: false, error: String(err) });
   }

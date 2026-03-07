@@ -23,7 +23,7 @@ browserTest(
 
     // We can't easily seed initial state into generateSchedule,
     // but we can check if it stays balanced over a full month.
-    const [schedule] = await generateSchedule([ALICE, BOB], 2026, 2, settings); // March 2026 (9 weekends)
+    const schedule = (await generateSchedule([ALICE, BOB], 2026, 2, settings))!; // March 2026 (9 weekends)
 
     const weekendCounts: Record<string, number> = { "1": 0, "2": 0 };
     for (const [date, pid] of Object.entries(schedule)) {
@@ -61,12 +61,12 @@ browserTest(
     );
     const ALICE_U = { ...ALICE, unavailable: aliceUnavailable };
 
-    const [schedule] = await generateSchedule(
+    const schedule = (await generateSchedule(
       [ALICE_U, BOB],
       2026,
       2,
       settings,
-    );
+    ))!;
 
     const dayCounts: Record<string, number> = { "1": 0, "2": 0 };
     for (const pid of Object.values(schedule)) {
@@ -119,12 +119,12 @@ browserTest(
     }
     const ALICE_U = { ...ALICE, unavailable: weekdays };
 
-    const [schedule] = await generateSchedule(
+    const schedule = (await generateSchedule(
       [ALICE_U, BOB],
       2026,
       2,
       settings,
-    );
+    ))!;
 
     const dayCounts: Record<string, number> = { "1": 0, "2": 0 };
     const weekendCounts: Record<string, number> = { "1": 0, "2": 0 };

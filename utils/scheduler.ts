@@ -32,9 +32,9 @@ export function generateSchedule(
   },
   customScores: DayScores = {},
   onProgress?: (current: number, total: number) => void,
-): Promise<Schedule[]> {
+): Promise<Schedule | null> {
   if (people.length === 0 || typeof document === "undefined") {
-    return Promise.resolve([] as Schedule[]);
+    return Promise.resolve(null);
   }
 
   return new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ export function generateSchedule(
 
       worker.terminate();
       if (e.data.ok) {
-        resolve(e.data.schedules);
+        resolve(e.data.schedule);
       } else {
         console.error("Scheduler worker error:", e.data.error);
         reject(new Error(e.data.error));

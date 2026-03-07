@@ -32,12 +32,12 @@ browserTest(
     const BOB_FULL = { ...BOB };
 
     // Run the generator
-    const [schedule] = await generateSchedule(
+    const schedule = (await generateSchedule(
       [ALICE_LIMITED, BOB_FULL],
       2026,
       2,
       settings,
-    );
+    ))!;
 
     // On March 1st (Sunday), both Alice and Bob have 0 Sunday shifts.
     // Without opportunity tie-break, it would be 50/50.
@@ -86,12 +86,12 @@ browserTest(
       { id: "m", name: "m", unavailable: [], color: "yellow" },
     ];
 
-    const [schedule] = await generateSchedule(
+    const schedule = (await generateSchedule(
       [BEDIS, ...OTHERS],
       2026,
       2,
       settings,
-    );
+    ))!;
 
     const bedisSundays = Object.entries(schedule).filter(([date, pid]) => {
       return pid === "bedis" && getDay(new Date(date)) === 0;
