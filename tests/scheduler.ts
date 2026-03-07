@@ -1,12 +1,16 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { generateSchedule, Person } from "./scheduler.ts";
+import { generateSchedule, Person } from "../utils/scheduler.ts";
+import { browserTest } from "./utils.ts";
 
-Deno.test("generateSchedule - empty people returns empty schedule", async () => {
-  const schedules = await generateSchedule([], 2026, 0);
-  assertEquals(schedules, []);
-});
+browserTest(
+  "generateSchedule - empty people returns empty schedule",
+  async () => {
+    const schedules = await generateSchedule([], 2026, 0);
+    assertEquals(schedules, []);
+  },
+);
 
-Deno.test("generateSchedule - respects unavailability", async () => {
+browserTest("generateSchedule - respects unavailability", async () => {
   const people: Person[] = [
     {
       id: "1",
@@ -28,7 +32,7 @@ Deno.test("generateSchedule - respects unavailability", async () => {
   assert(schedule["2026-01-01"] !== "1");
 });
 
-Deno.test("generateSchedule - fair distribution", async () => {
+browserTest("generateSchedule - fair distribution", async () => {
   const people: Person[] = [
     { id: "1", name: "A", unavailable: [], color: "bg-red-500" },
     { id: "2", name: "B", unavailable: [], color: "bg-blue-500" },
@@ -47,7 +51,7 @@ Deno.test("generateSchedule - fair distribution", async () => {
   );
 });
 
-Deno.test("generateSchedule - partial availability", async () => {
+browserTest("generateSchedule - partial availability", async () => {
   const people: Person[] = [
     { id: "1", name: "A", unavailable: [], color: "bg-red-500" }, // Available all month
     { id: "2", name: "B", unavailable: [], color: "bg-blue-500" }, // Available all month

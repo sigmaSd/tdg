@@ -44,6 +44,8 @@
     "npm:esbuild@0.25.7": "0.25.7",
     "npm:esbuild@~0.25.5": "0.25.12",
     "npm:esbuild@~0.27.3": "0.27.3",
+    "npm:playwright@*": "1.58.2",
+    "npm:playwright@^1.58.2": "1.58.2",
     "npm:preact-render-to-string@^6.6.3": "6.6.6_preact@10.28.4",
     "npm:preact@^10.27.0": "10.28.4",
     "npm:preact@^10.27.2": "10.28.4",
@@ -51,7 +53,9 @@
     "npm:react-day-picker@^9.14.0": "9.14.0_react@19.2.4",
     "npm:rollup@^4.50.0": "4.59.0",
     "npm:tailwindcss@^4.2.1": "4.2.1",
+    "npm:vite@7": "7.3.1",
     "npm:vite@7.3.1": "7.3.1",
+    "npm:vite@^7.1.4": "7.3.1",
     "npm:z3-solver@4.16.0": "4.16.0"
   },
   "jsr": {
@@ -109,13 +113,15 @@
         "npm:@babel/preset-react",
         "npm:@mjackson/node-fetch-server",
         "npm:@prefresh/vite",
-        "npm:rollup"
+        "npm:rollup",
+        "npm:vite@^7.1.4"
       ]
     },
     "@sigmasd/vite-plugin-z3@0.6.0": {
       "integrity": "a1b16047d395b545e60bfa6124596ef71e4c81a4e01995a94cd81235a0923038",
       "dependencies": [
-        "npm:esbuild@~0.27.3"
+        "npm:esbuild@~0.27.3",
+        "npm:vite@7"
       ]
     },
     "@std/assert@1.0.19": {
@@ -1229,6 +1235,11 @@
         "picomatch@4.0.3"
       ]
     },
+    "fsevents@2.3.2": {
+      "integrity": "sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==",
+      "os": ["darwin"],
+      "scripts": true
+    },
     "fsevents@2.3.3": {
       "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
       "os": ["darwin"],
@@ -1360,6 +1371,20 @@
     "picomatch@4.0.3": {
       "integrity": "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q=="
     },
+    "playwright-core@1.58.2": {
+      "integrity": "sha512-yZkEtftgwS8CsfYo7nm0KE8jsvm6i/PTgVtB8DL726wNf6H2IMsDuxCpJj59KDaxCtSnrWan2AeDqM7JBaultg==",
+      "bin": true
+    },
+    "playwright@1.58.2": {
+      "integrity": "sha512-vA30H8Nvkq/cPBnNw4Q8TWz1EJyqgpuinBcHET0YVJVFldr8JDNiU9LaWAE1KqSkRYazuaBhTpB5ZzShOezQ6A==",
+      "dependencies": [
+        "playwright-core"
+      ],
+      "optionalDependencies": [
+        "fsevents@2.3.2"
+      ],
+      "bin": true
+    },
     "postcss@8.5.6": {
       "integrity": "sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==",
       "dependencies": [
@@ -1421,7 +1446,7 @@
         "@rollup/rollup-win32-ia32-msvc",
         "@rollup/rollup-win32-x64-gnu",
         "@rollup/rollup-win32-x64-msvc",
-        "fsevents"
+        "fsevents@2.3.3"
       ],
       "bin": true
     },
@@ -1468,7 +1493,7 @@
         "tinyglobby"
       ],
       "optionalDependencies": [
-        "fsevents"
+        "fsevents@2.3.3"
       ],
       "bin": true
     },

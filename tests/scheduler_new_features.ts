@@ -1,6 +1,12 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
-import { DayScores, generateSchedule, Person, Settings } from "./scheduler.ts";
+import {
+  DayScores,
+  generateSchedule,
+  Person,
+  Settings,
+} from "../utils/scheduler.ts";
 import { getDay } from "date-fns";
+import { browserTest } from "./utils.ts";
 
 const PEOPLE: Person[] = [
   { id: "1", name: "Alice", unavailable: [], color: "bg-red-500" },
@@ -8,7 +14,7 @@ const PEOPLE: Person[] = [
   { id: "3", name: "Charlie", unavailable: [], color: "bg-green-500" },
 ];
 
-Deno.test("generateSchedule - avoidConsecutive", async () => {
+browserTest("generateSchedule - avoidConsecutive", async () => {
   const settings: Settings = {
     avoidConsecutive: true,
     enableScoring: false,
@@ -16,7 +22,7 @@ Deno.test("generateSchedule - avoidConsecutive", async () => {
     fairWeekend: false,
   };
 
-  const schedule = await generateSchedule(PEOPLE, 2026, 0, settings); // Jan 2026 (31 days)
+  const [schedule] = await generateSchedule(PEOPLE, 2026, 0, settings); // Jan 2026 (31 days)
   const dates = Object.keys(schedule).sort();
 
   for (let i = 1; i < dates.length; i++) {
@@ -30,7 +36,7 @@ Deno.test("generateSchedule - avoidConsecutive", async () => {
   }
 });
 
-Deno.test("generateSchedule - fairWeekend", async () => {
+browserTest("generateSchedule - fairWeekend", async () => {
   const settings: Settings = {
     avoidConsecutive: false,
     enableScoring: false,
@@ -38,7 +44,7 @@ Deno.test("generateSchedule - fairWeekend", async () => {
     fairWeekend: true,
   };
 
-  const schedule = await generateSchedule(PEOPLE, 2026, 0, settings);
+  const [schedule] = await generateSchedule(PEOPLE, 2026, 0, settings);
 
   const satCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
   const sunCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
@@ -64,7 +70,7 @@ Deno.test("generateSchedule - fairWeekend", async () => {
   assertEquals(suns, [1, 1, 2]);
 });
 
-Deno.test("generateSchedule - scoring system (preferFairScore)", async () => {
+browserTest("generateSchedule - scoring system (preferFairScore)", async () => {
   const settings: Settings = {
     avoidConsecutive: false,
     enableScoring: true,
@@ -77,7 +83,7 @@ Deno.test("generateSchedule - scoring system (preferFairScore)", async () => {
     "2026-01-01": 10,
   };
 
-  const schedule = await generateSchedule(
+  const [schedule] = await generateSchedule(
     PEOPLE,
     2026,
     0,
