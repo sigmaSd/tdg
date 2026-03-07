@@ -1,6 +1,5 @@
-import { assert, assertEquals } from "jsr:@std/assert";
+import { assert, assertEquals } from "jsr:@std/assert@1";
 import { generateSchedule, Person } from "./scheduler.ts";
-import { format } from "npm:date-fns";
 
 Deno.test("generateSchedule - empty people returns empty schedule", () => {
   const schedule = generateSchedule([], 2026, 0);

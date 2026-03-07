@@ -1,4 +1,4 @@
-import { format, getDaysInMonth } from "npm:date-fns";
+import { format, getDaysInMonth } from "date-fns";
 
 export interface Person {
   id: string;

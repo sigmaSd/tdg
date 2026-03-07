@@ -3,7 +3,7 @@ import { useEffect } from "preact/hooks";
 import { generateSchedule, Person, Schedule } from "../utils/scheduler.ts";
 import { PersonList } from "../components/PersonList.tsx";
 import { Calendar } from "../components/Calendar.tsx";
-import { addMonths, format, subMonths } from "npm:date-fns";
+import { addMonths, format } from "date-fns";
 
 export default function App() {
   // Default to next month
@@ -103,6 +103,7 @@ export default function App() {
           <div class="bg-white p-4 rounded-lg shadow flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-4">
               <button
+                type="button"
                 onClick={() => changeMonth(-1)}
                 class="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 title="Previous Month"
@@ -113,6 +114,7 @@ export default function App() {
                 {format(viewDate.value, "MMMM yyyy")}
               </h2>
               <button
+                type="button"
                 onClick={() => changeMonth(1)}
                 class="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 title="Next Month"
@@ -122,6 +124,7 @@ export default function App() {
             </div>
 
             <button
+              type="button"
               onClick={handleGenerate}
               class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-lg shadow hover:bg-green-700 transition-transform transform active:scale-95 w-full sm:w-auto"
             >

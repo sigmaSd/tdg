@@ -8,7 +8,7 @@ import {
   isToday,
   startOfMonth,
   startOfWeek,
-} from "npm:date-fns";
+} from "date-fns";
 
 interface CalendarProps {
   schedule: Schedule;
