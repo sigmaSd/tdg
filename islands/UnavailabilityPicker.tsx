@@ -101,6 +101,7 @@ export default function UnavailabilityPicker({
                   selected={Array.from(selectedDates).map((d) => parseISO(d))}
                   onSelect={handleMultipleSelect}
                   className="border rounded-lg p-2 shadow-sm"
+                  weekStartsOn={1}
                 />
               </>
             )
@@ -114,6 +115,7 @@ export default function UnavailabilityPicker({
                   selected={range}
                   onSelect={setRange}
                   className="border rounded-lg p-2 shadow-sm"
+                  weekStartsOn={1}
                 />
                 <button
                   type="button"

@@ -19,11 +19,11 @@ interface CalendarProps {
 
 export function Calendar({ schedule, year, month, people }: CalendarProps) {
   const date = new Date(year, month, 1);
-  const start = startOfWeek(startOfMonth(date));
-  const end = endOfWeek(endOfMonth(date));
+  const start = startOfWeek(startOfMonth(date), { weekStartsOn: 1 });
+  const end = endOfWeek(endOfMonth(date), { weekStartsOn: 1 });
 
   const days = eachDayOfInterval({ start, end });
-  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   const getPersonName = (id: string) => {
     return people.find((p) => p.id === id)?.name || "Unknown";
