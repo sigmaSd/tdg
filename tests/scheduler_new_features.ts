@@ -112,3 +112,41 @@ browserTest("generateSchedule - scoring system (preferFairScore)", async () => {
   console.log("Day counts:", dayCounts);
   console.log("Score counts:", scoreCounts);
 });
+
+browserTest("generateSchedule - fixedAssignments", async () => {
+  const settings: Settings = {
+    avoidConsecutive: true,
+    enableScoring: false,
+    preferFairScore: false,
+    fairWeekend: false,
+  };
+
+  const fixedAssignments: Record<string, string> = {
+    "2026-01-01": "3", // Jan 1st is Charlie
+    "2026-01-15": "1", // Jan 15th is Alice
+    "2026-01-31": "2", // Jan 31st is Bob
+  };
+
+  const schedule = (await generateSchedule(
+    PEOPLE,
+    2026,
+    0,
+    settings,
+    {},
+    fixedAssignments,
+  ))!;
+
+  assertEquals(schedule["2026-01-01"], "3");
+  assertEquals(schedule["2026-01-15"], "1");
+  assertEquals(schedule["2026-01-31"], "2");
+
+  // Also verify they are still distributed fairly-ish
+  const counts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
+  for (const personId of Object.values(schedule)) {
+    counts[personId]++;
+  }
+
+  // 31 days / 3 people = 10.33 days each -> [10, 10, 11]
+  const sortedCounts = Object.values(counts).sort();
+  assertEquals(sortedCounts, [10, 10, 11]);
+});

@@ -45,7 +45,7 @@ browserTest(
 );
 
 browserTest(
-  "Hierarchical Fairness - Workload Catch-up (The 'bedis' Case)",
+  "Hierarchical Fairness - Workload Catch-up (The 'user' Case)",
   async () => {
     const settings: Settings = {
       avoidConsecutive: false,

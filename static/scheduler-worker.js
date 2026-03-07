@@ -35,6 +35,7 @@ async function generateSchedule(
   month,
   settings,
   customScores,
+  fixedAssignments = {},
 ) {
   if (people.length === 0) return null;
 
@@ -60,9 +61,22 @@ async function generateSchedule(
     solver.add(dayVars[d].ge(0));
     solver.add(dayVars[d].lt(n));
 
+    // Fixed assignments take precedence
+    if (fixedAssignments[dateString]) {
+      const personIdx = people.findIndex((p) =>
+        p.id === fixedAssignments[dateString]
+      );
+      if (personIdx !== -1) {
+        solver.add(dayVars[d].eq(personIdx));
+      }
+    }
+
     people.forEach((person, idx) => {
       if (person.unavailable.includes(dateString)) {
-        solver.add(dayVars[d].neq(idx));
+        // Only add unavailability constraint if it's not a fixed assignment (fixed takes priority)
+        if (fixedAssignments[dateString] !== person.id) {
+          solver.add(dayVars[d].neq(idx));
+        }
       }
     });
 
@@ -85,68 +99,88 @@ async function generateSchedule(
     const isSunday = dayOfWeek === 0;
     const dayScore = customScores[dateString] ?? (isSunday ? 2 : 1);
 
+    const fixedPersonId = fixedAssignments[dateString];
     const candidates = [];
-    for (let idx = 0; idx < n; idx++) {
-      if (people[idx].unavailable.includes(dateString)) continue;
-      if (
-        settings.avoidConsecutive && d > 0 &&
-        currentSchedule[formatDate(new Date(year, month, d))] ===
-          people[idx].id
-      ) continue;
 
-      let futureAvail = 0;
-      for (let f = d; f < totalDays; f++) {
+    if (fixedPersonId) {
+      const idx = people.findIndex((p) => p.id === fixedPersonId);
+      if (idx !== -1) {
+        candidates.push({
+          idx,
+          // Other properties don't matter much for fixed assignments as it will be the only candidate
+          totalWorkload: currentCounts[idx],
+          weekendWorkload: settings.fairWeekend
+            ? (weekendCounts[idx][dayOfWeek] || 0)
+            : 0,
+          score: currentScores[idx],
+          recency: lastWorked[idx],
+          opportunity: 0,
+          weekendOpportunity: 0,
+        });
+      }
+    } else {
+      for (let idx = 0; idx < n; idx++) {
+        if (people[idx].unavailable.includes(dateString)) continue;
         if (
-          !people[idx].unavailable.includes(
-            formatDate(new Date(year, month, f + 1)),
-          )
-        ) futureAvail++;
-      }
+          settings.avoidConsecutive && d > 0 &&
+          currentSchedule[formatDate(new Date(year, month, d))] ===
+            people[idx].id
+        ) continue;
 
-      let futureWeekendAvail = 0;
-      if (settings.fairWeekend && (dayOfWeek === 0 || dayOfWeek === 6)) {
+        let futureAvail = 0;
         for (let f = d; f < totalDays; f++) {
-          const fd = new Date(year, month, f + 1);
           if (
-            getDay(fd) === dayOfWeek &&
-            !people[idx].unavailable.includes(formatDate(fd))
-          ) futureWeekendAvail++;
+            !people[idx].unavailable.includes(
+              formatDate(new Date(year, month, f + 1)),
+            )
+          ) futureAvail++;
         }
+
+        let futureWeekendAvail = 0;
+        if (settings.fairWeekend && (dayOfWeek === 0 || dayOfWeek === 6)) {
+          for (let f = d; f < totalDays; f++) {
+            const fd = new Date(year, month, f + 1);
+            if (
+              getDay(fd) === dayOfWeek &&
+              !people[idx].unavailable.includes(formatDate(fd))
+            ) futureWeekendAvail++;
+          }
+        }
+
+        candidates.push({
+          idx,
+          totalWorkload: currentCounts[idx],
+          weekendWorkload: settings.fairWeekend
+            ? (weekendCounts[idx][dayOfWeek] || 0)
+            : 0,
+          score: currentScores[idx],
+          recency: lastWorked[idx],
+          opportunity: futureAvail,
+          weekendOpportunity: futureWeekendAvail,
+        });
       }
 
-      candidates.push({
-        idx,
-        totalWorkload: currentCounts[idx],
-        weekendWorkload: settings.fairWeekend
-          ? (weekendCounts[idx][dayOfWeek] || 0)
-          : 0,
-        score: currentScores[idx],
-        recency: lastWorked[idx],
-        opportunity: futureAvail,
-        weekendOpportunity: futureWeekendAvail,
+      candidates.sort((a, b) => {
+        if (settings.fairWeekend && (dayOfWeek === 0 || dayOfWeek === 6)) {
+          if (a.weekendWorkload !== b.weekendWorkload) {
+            return a.weekendWorkload - b.weekendWorkload;
+          }
+          if (a.weekendOpportunity !== b.weekendOpportunity) {
+            return a.weekendOpportunity - b.weekendOpportunity;
+          }
+        }
+        if (settings.enableScoring && settings.preferFairScore) {
+          if (Math.abs(a.score - b.score) > 1) return a.score - b.score;
+        }
+        if (a.totalWorkload !== b.totalWorkload) {
+          return a.totalWorkload - b.totalWorkload;
+        }
+        if (a.opportunity !== b.opportunity) {
+          return a.opportunity - b.opportunity;
+        }
+        return a.recency - b.recency;
       });
     }
-
-    candidates.sort((a, b) => {
-      if (settings.fairWeekend && (dayOfWeek === 0 || dayOfWeek === 6)) {
-        if (a.weekendWorkload !== b.weekendWorkload) {
-          return a.weekendWorkload - b.weekendWorkload;
-        }
-        if (a.weekendOpportunity !== b.weekendOpportunity) {
-          return a.weekendOpportunity - b.weekendOpportunity;
-        }
-      }
-      if (settings.enableScoring && settings.preferFairScore) {
-        if (Math.abs(a.score - b.score) > 1) return a.score - b.score;
-      }
-      if (a.totalWorkload !== b.totalWorkload) {
-        return a.totalWorkload - b.totalWorkload;
-      }
-      if (a.opportunity !== b.opportunity) {
-        return a.opportunity - b.opportunity;
-      }
-      return a.recency - b.recency;
-    });
 
     let assigned = false;
     for (const cand of candidates) {
@@ -180,7 +214,8 @@ async function generateSchedule(
 }
 
 self.onmessage = async (e) => {
-  const { people, year, month, settings, customScores } = e.data;
+  const { people, year, month, settings, customScores, fixedAssignments } =
+    e.data;
   try {
     const schedule = await generateSchedule(
       people,
@@ -188,6 +223,7 @@ self.onmessage = async (e) => {
       month,
       settings,
       customScores,
+      fixedAssignments,
     );
     self.postMessage({ ok: true, schedule });
   } catch (err) {

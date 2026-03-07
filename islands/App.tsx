@@ -41,6 +41,7 @@ export default function App() {
   const progress = useSignal({ current: 0, total: 0 });
   const settings = useSignal<Settings>(DEFAULT_SETTINGS);
   const customScores = useSignal<DayScores>({});
+  const fixedAssignments = useSignal<Record<string, string>>({});
   const initialized = useSignal(false);
 
   // Load from LocalStorage on mount
@@ -76,6 +77,9 @@ export default function App() {
     const savedScores = localStorage.getItem("tdg-scores");
     if (savedScores) customScores.value = JSON.parse(savedScores);
 
+    const savedFixed = localStorage.getItem("tdg-fixed-assignments");
+    if (savedFixed) fixedAssignments.value = JSON.parse(savedFixed);
+
     const savedMonth = localStorage.getItem("tdg-view-month");
     if (savedMonth) viewDate.value = parseISO(savedMonth);
 
@@ -93,6 +97,10 @@ export default function App() {
       localStorage.setItem("tdg-people", JSON.stringify(people.value));
       localStorage.setItem("tdg-settings", JSON.stringify(settings.value));
       localStorage.setItem("tdg-scores", JSON.stringify(customScores.value));
+      localStorage.setItem(
+        "tdg-fixed-assignments",
+        JSON.stringify(fixedAssignments.value),
+      );
       localStorage.setItem("tdg-view-month", viewDate.value.toISOString());
       localStorage.setItem("tdg-schedule", JSON.stringify(schedule.value));
     }
@@ -100,6 +108,7 @@ export default function App() {
     people.value,
     settings.value,
     customScores.value,
+    fixedAssignments.value,
     viewDate.value,
     schedule.value,
     initialized.value,
@@ -138,6 +147,7 @@ export default function App() {
         month,
         settings.value,
         customScores.value,
+        fixedAssignments.value,
         (current, total) => {
           progress.value = { current, total };
         },
@@ -166,6 +176,35 @@ export default function App() {
       ...customScores.value,
       [dateString]: nextScore,
     };
+  };
+
+  const handleSetFixedAssignment = (dateString: string, personId: string) => {
+    fixedAssignments.value = {
+      ...fixedAssignments.value,
+      [dateString]: personId,
+    };
+    // Update current schedule immediately to show the change
+    if (schedule.value) {
+      schedule.value = {
+        ...schedule.value,
+        [dateString]: personId,
+      };
+    } else {
+      schedule.value = { [dateString]: personId };
+    }
+  };
+
+  const handleResetFixedAssignment = (dateString: string) => {
+    const newFixed = { ...fixedAssignments.value };
+    delete newFixed[dateString];
+    fixedAssignments.value = newFixed;
+
+    // Also remove from schedule if it was there
+    if (schedule.value) {
+      const newSchedule = { ...schedule.value };
+      delete newSchedule[dateString];
+      schedule.value = newSchedule;
+    }
   };
 
   const currentSchedule = schedule.value || {};
@@ -201,7 +240,10 @@ export default function App() {
               <li>Manage unavailability for each person.</li>
               <li>Adjust scheduling settings as needed.</li>
               <li>
-                Click <strong>Generate Schedule</strong>.
+                Click on a calendar date to manually assign a person.
+              </li>
+              <li>
+                Click <strong>Generate Schedule</strong> to fill the rest.
               </li>
             </ul>
           </div>
@@ -268,7 +310,10 @@ export default function App() {
             people={people.value}
             settings={settings.value}
             customScores={customScores.value}
+            fixedAssignments={fixedAssignments.value}
             onToggleScore={handleToggleScore}
+            onSetFixedAssignment={handleSetFixedAssignment}
+            onResetFixedAssignment={handleResetFixedAssignment}
           />
 
           <ScheduleSummary

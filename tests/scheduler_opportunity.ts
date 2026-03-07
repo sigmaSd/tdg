@@ -59,7 +59,7 @@ browserTest(
 );
 
 browserTest(
-  "Opportunity Tie-breaker - Handles complex unavailability like 'bedis'",
+  "Opportunity Tie-breaker - Handles complex unavailability like 'user'",
   async () => {
     const settings: Settings = {
       avoidConsecutive: true,
@@ -68,16 +68,16 @@ browserTest(
       fairWeekend: true,
     };
 
-    // User "bedis" scenario: unavailable for the last 14 days of March.
+    // User "user" scenario: unavailable for the last 14 days of March.
     // This includes the last two weekends.
-    const bedisUnavailable = [];
+    const userUnavailable = [];
     for (let i = 18; i <= 31; i++) {
-      bedisUnavailable.push(`2026-03-${String(i).padStart(2, "0")}`);
+      userUnavailable.push(`2026-03-${String(i).padStart(2, "0")}`);
     }
-    const BEDIS = {
-      id: "bedis",
-      name: "bedis",
-      unavailable: bedisUnavailable,
+    const USER = {
+      id: "user",
+      name: "user",
+      unavailable: userUnavailable,
       color: "red",
     };
     const OTHERS = [
@@ -87,27 +87,27 @@ browserTest(
     ];
 
     const schedule = (await generateSchedule(
-      [BEDIS, ...OTHERS],
+      [USER, ...OTHERS],
       2026,
       2,
       settings,
     ))!;
 
-    const bedisSundays = Object.entries(schedule).filter(([date, pid]) => {
-      return pid === "bedis" && getDay(new Date(date)) === 0;
+    const userSundays = Object.entries(schedule).filter(([date, pid]) => {
+      return pid === "user" && getDay(new Date(date)) === 0;
     }).length;
 
-    // Bedis is only available for 3 Sundays (1st, 8th, 15th).
+    // User is only available for 3 Sundays (1st, 8th, 15th).
     // Others are available for 5 Sundays.
     // Total Sundays = 5. Average per person = 5 / 4 = 1.25.
-    // Bedis should definitely get at least 1 Sunday if the logic prioritizes him early.
-    // Before this logic, Bedis might get 0 if he was "unlucky" on the first 3 Sundays.
+    // User should definitely get at least 1 Sunday if the logic prioritizes him early.
+    // Before this logic, user might get 0 if he was "unlucky" on the first 3 Sundays.
 
-    console.log("Bedis total Sundays:", bedisSundays);
+    console.log("User total Sundays:", userSundays);
     assertEquals(
-      bedisSundays >= 1,
+      userSundays >= 1,
       true,
-      "Bedis should have gotten at least one Sunday shift while he was available",
+      "User should have gotten at least one Sunday shift while he was available",
     );
   },
 );

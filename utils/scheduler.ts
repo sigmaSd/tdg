@@ -31,6 +31,7 @@ export function generateSchedule(
     fairWeekend: false,
   },
   customScores: DayScores = {},
+  fixedAssignments: Record<string, string> = {},
   onProgress?: (current: number, total: number) => void,
 ): Promise<Schedule | null> {
   if (people.length === 0 || typeof document === "undefined") {
@@ -58,6 +59,13 @@ export function generateSchedule(
       console.error("Scheduler worker failed:", err);
       reject(err);
     };
-    worker.postMessage({ people, year, month, settings, customScores });
+    worker.postMessage({
+      people,
+      year,
+      month,
+      settings,
+      customScores,
+      fixedAssignments,
+    });
   });
 }
