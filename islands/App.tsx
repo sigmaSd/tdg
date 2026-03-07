@@ -1,44 +1,105 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
-import { generateSchedule, Person, Schedule } from "../utils/scheduler.ts";
+import {
+  DayScores,
+  generateSchedule,
+  Person,
+  Schedule,
+  Settings,
+} from "../utils/scheduler.ts";
 import { PersonList } from "../components/PersonList.tsx";
 import { Calendar } from "../components/Calendar.tsx";
-import { addMonths, format } from "date-fns";
+import { SettingsMenu } from "../components/SettingsMenu.tsx";
+import { addMonths, format, getDay, parseISO } from "date-fns";
+
+const COLORS = [
+  "bg-red-500",
+  "bg-blue-500",
+  "bg-green-500",
+  "bg-yellow-500",
+  "bg-purple-500",
+  "bg-pink-500",
+  "bg-indigo-500",
+  "bg-teal-500",
+  "bg-orange-500",
+  "bg-cyan-500",
+];
+
+const DEFAULT_SETTINGS: Settings = {
+  avoidConsecutive: true,
+  enableScoring: false,
+  preferFairScore: false,
+  fairWeekend: false,
+};
 
 export default function App() {
-  // Default to next month
   const viewDate = useSignal(addMonths(new Date(), 1));
   const people = useSignal<Person[]>([]);
   const schedule = useSignal<Schedule>({});
+  const settings = useSignal<Settings>(DEFAULT_SETTINGS);
+  const customScores = useSignal<DayScores>({});
   const initialized = useSignal(false);
 
   // Load from LocalStorage on mount
   useEffect(() => {
     const savedPeople = localStorage.getItem("tdg-people");
-    if (savedPeople) {
-      people.value = JSON.parse(savedPeople);
-    } else {
-      // Seed defaults
+    if (savedPeople) people.value = JSON.parse(savedPeople);
+    else {
       people.value = [
-        { id: crypto.randomUUID(), name: "Alice", unavailable: [] },
-        { id: crypto.randomUUID(), name: "Bob", unavailable: [] },
-        { id: crypto.randomUUID(), name: "Charlie", unavailable: [] },
+        {
+          id: crypto.randomUUID(),
+          name: "Alice",
+          unavailable: [],
+          color: COLORS[0],
+        },
+        {
+          id: crypto.randomUUID(),
+          name: "Bob",
+          unavailable: [],
+          color: COLORS[1],
+        },
+        {
+          id: crypto.randomUUID(),
+          name: "Charlie",
+          unavailable: [],
+          color: COLORS[2],
+        },
       ];
     }
+
+    const savedSettings = localStorage.getItem("tdg-settings");
+    if (savedSettings) settings.value = JSON.parse(savedSettings);
+
+    const savedScores = localStorage.getItem("tdg-scores");
+    if (savedScores) customScores.value = JSON.parse(savedScores);
+
+    const savedMonth = localStorage.getItem("tdg-view-month");
+    if (savedMonth) viewDate.value = parseISO(savedMonth);
+
     initialized.value = true;
   }, []);
 
-  // Save to LocalStorage whenever people change
+  // Save to LocalStorage
   useEffect(() => {
     if (initialized.value) {
       localStorage.setItem("tdg-people", JSON.stringify(people.value));
+      localStorage.setItem("tdg-settings", JSON.stringify(settings.value));
+      localStorage.setItem("tdg-scores", JSON.stringify(customScores.value));
+      localStorage.setItem("tdg-view-month", viewDate.value.toISOString());
     }
-  }, [people.value, initialized.value]);
+  }, [
+    people.value,
+    settings.value,
+    customScores.value,
+    viewDate.value,
+    initialized.value,
+  ]);
 
   const handleAddPerson = (name: string) => {
+    const color = COLORS[people.value.length % COLORS.length];
     people.value = [
       ...people.value,
-      { id: crypto.randomUUID(), name, unavailable: [] },
+      { id: crypto.randomUUID(), name, unavailable: [], color },
     ];
   };
 
@@ -55,14 +116,29 @@ export default function App() {
   const handleGenerate = () => {
     const year = viewDate.value.getFullYear();
     const month = viewDate.value.getMonth();
-    schedule.value = generateSchedule(people.value, year, month);
+    schedule.value = generateSchedule(
+      people.value,
+      year,
+      month,
+      settings.value,
+      customScores.value,
+    );
   };
 
   const changeMonth = (delta: number) => {
     viewDate.value = addMonths(viewDate.value, delta);
-    // Optionally clear schedule or keep it?
-    // Usually a new month needs a new schedule.
     schedule.value = {};
+  };
+
+  const handleToggleScore = (dateString: string) => {
+    const isSunday = getDay(parseISO(dateString)) === 0;
+    const currentScore = customScores.value[dateString] ?? (isSunday ? 2 : 1);
+    const nextScore = currentScore >= 3 ? 1 : currentScore + 1;
+
+    customScores.value = {
+      ...customScores.value,
+      [dateString]: nextScore,
+    };
   };
 
   return (
@@ -75,8 +151,8 @@ export default function App() {
       </header>
 
       <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: People Management */}
-        <div class="lg:col-span-4">
+        {/* Left Column: Management */}
+        <div class="lg:col-span-4 space-y-6">
           <PersonList
             people={people.value}
             onAddPerson={handleAddPerson}
@@ -84,12 +160,17 @@ export default function App() {
             onUpdatePerson={handleUpdatePerson}
           />
 
-          <div class="mt-6 bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <SettingsMenu
+            settings={settings.value}
+            onUpdate={(s) => settings.value = s}
+          />
+
+          <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
             <h3 class="font-bold text-blue-800 mb-2">Instructions</h3>
             <ul class="list-disc list-inside text-sm text-blue-700 space-y-1">
               <li>Add people to the roster.</li>
-              <li>Click "Add Date" to mark unavailability.</li>
-              <li>Select the target month.</li>
+              <li>Manage unavailability for each person.</li>
+              <li>Adjust scheduling settings as needed.</li>
               <li>
                 Click <strong>Generate Schedule</strong>.
               </li>
@@ -100,12 +181,12 @@ export default function App() {
         {/* Right Column: Calendar & Controls */}
         <div class="lg:col-span-8 space-y-6">
           {/* Controls */}
-          <div class="bg-white p-4 rounded-lg shadow flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div class="bg-white p-4 rounded-lg shadow flex flex-col sm:flex-row justify-between items-center gap-4 border-t-4 border-blue-500">
             <div class="flex items-center gap-4">
               <button
                 type="button"
                 onClick={() => changeMonth(-1)}
-                class="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                class="p-2 hover:bg-gray-100 rounded-full transition-colors text-xl"
                 title="Previous Month"
               >
                 ←
@@ -116,7 +197,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => changeMonth(1)}
-                class="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                class="p-2 hover:bg-gray-100 rounded-full transition-colors text-xl"
                 title="Next Month"
               >
                 →
@@ -126,9 +207,10 @@ export default function App() {
             <button
               type="button"
               onClick={handleGenerate}
-              class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold text-lg shadow hover:bg-green-700 transition-transform transform active:scale-95 w-full sm:w-auto"
+              class="bg-green-600 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg hover:bg-green-700 transition-all transform active:scale-95 hover:shadow-xl w-full sm:w-auto flex items-center justify-center gap-2"
             >
-              Generate Schedule 🎲
+              <span>Generate Schedule</span>
+              <span class="text-xl">🎲</span>
             </button>
           </div>
 
@@ -138,6 +220,9 @@ export default function App() {
             year={viewDate.value.getFullYear()}
             month={viewDate.value.getMonth()}
             people={people.value}
+            settings={settings.value}
+            customScores={customScores.value}
+            onToggleScore={handleToggleScore}
           />
         </div>
       </main>

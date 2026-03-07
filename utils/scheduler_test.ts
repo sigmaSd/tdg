@@ -8,8 +8,13 @@ Deno.test("generateSchedule - empty people returns empty schedule", () => {
 
 Deno.test("generateSchedule - respects unavailability", () => {
   const people: Person[] = [
-    { id: "1", name: "Alice", unavailable: ["2026-01-01"] },
-    { id: "2", name: "Bob", unavailable: [] },
+    {
+      id: "1",
+      name: "Alice",
+      unavailable: ["2026-01-01"],
+      color: "bg-red-500",
+    },
+    { id: "2", name: "Bob", unavailable: [], color: "bg-blue-500" },
   ];
 
   // Generate for Jan 2026
@@ -25,8 +30,8 @@ Deno.test("generateSchedule - respects unavailability", () => {
 
 Deno.test("generateSchedule - fair distribution", () => {
   const people: Person[] = [
-    { id: "1", name: "A", unavailable: [] },
-    { id: "2", name: "B", unavailable: [] },
+    { id: "1", name: "A", unavailable: [], color: "bg-red-500" },
+    { id: "2", name: "B", unavailable: [], color: "bg-blue-500" },
   ];
 
   // Jan 2026 has 31 days.
@@ -44,9 +49,9 @@ Deno.test("generateSchedule - fair distribution", () => {
 
 Deno.test("generateSchedule - partial availability", () => {
   const people: Person[] = [
-    { id: "1", name: "A", unavailable: [] }, // Available all month
-    { id: "2", name: "B", unavailable: [] }, // Available all month
-    { id: "3", name: "C", unavailable: [] }, // Available all month
+    { id: "1", name: "A", unavailable: [], color: "bg-red-500" }, // Available all month
+    { id: "2", name: "B", unavailable: [], color: "bg-blue-500" }, // Available all month
+    { id: "3", name: "C", unavailable: [], color: "bg-green-500" }, // Available all month
   ];
   // Make C unavailable for 30 days?
   // Let's just run basic check

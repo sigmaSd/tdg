@@ -97,6 +97,7 @@ function PersonItem(
     <div class="border p-3 rounded hover:bg-gray-50 transition-colors group flex items-center justify-between">
       <div class="flex-1">
         <div class="flex items-center gap-2 mb-1">
+          <div class={`w-3 h-3 rounded-full ${person.color}`} />
           <span class="font-semibold text-lg text-gray-800">{person.name}</span>
         </div>
 
