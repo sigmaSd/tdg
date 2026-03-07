@@ -10,6 +10,7 @@ import {
 import { PersonList } from "../components/PersonList.tsx";
 import { Calendar } from "../components/Calendar.tsx";
 import { SettingsMenu } from "../components/SettingsMenu.tsx";
+import { ScheduleSummary } from "../components/ScheduleSummary.tsx";
 import { addMonths, format, getDay, parseISO } from "date-fns";
 
 const COLORS = [
@@ -76,6 +77,9 @@ export default function App() {
     const savedMonth = localStorage.getItem("tdg-view-month");
     if (savedMonth) viewDate.value = parseISO(savedMonth);
 
+    const savedSchedule = localStorage.getItem("tdg-schedule");
+    if (savedSchedule) schedule.value = JSON.parse(savedSchedule);
+
     initialized.value = true;
   }, []);
 
@@ -86,12 +90,14 @@ export default function App() {
       localStorage.setItem("tdg-settings", JSON.stringify(settings.value));
       localStorage.setItem("tdg-scores", JSON.stringify(customScores.value));
       localStorage.setItem("tdg-view-month", viewDate.value.toISOString());
+      localStorage.setItem("tdg-schedule", JSON.stringify(schedule.value));
     }
   }, [
     people.value,
     settings.value,
     customScores.value,
     viewDate.value,
+    schedule.value,
     initialized.value,
   ]);
 
@@ -210,7 +216,6 @@ export default function App() {
               class="bg-green-600 text-white px-8 py-3 rounded-lg font-bold text-lg shadow-lg hover:bg-green-700 transition-all transform active:scale-95 hover:shadow-xl w-full sm:w-auto flex items-center justify-center gap-2"
             >
               <span>Generate Schedule</span>
-              <span class="text-xl">🎲</span>
             </button>
           </div>
 
@@ -223,6 +228,15 @@ export default function App() {
             settings={settings.value}
             customScores={customScores.value}
             onToggleScore={handleToggleScore}
+          />
+
+          <ScheduleSummary
+            schedule={schedule.value}
+            people={people.value}
+            settings={settings.value}
+            customScores={customScores.value}
+            year={viewDate.value.getFullYear()}
+            month={viewDate.value.getMonth()}
           />
         </div>
       </main>

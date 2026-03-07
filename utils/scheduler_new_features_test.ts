@@ -40,21 +40,28 @@ Deno.test("generateSchedule - fairWeekend", () => {
 
   const schedule = generateSchedule(PEOPLE, 2026, 0, settings);
 
-  const weekendCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
+  const satCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
+  const sunCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
 
-  for (const [date, personId] of Object.entries(schedule)) {
-    const d = new Date(date);
-    const day = getDay(d);
-    if (day === 0 || day === 6) {
-      weekendCounts[personId]++;
-    }
+  for (let d = 1; d <= 31; d++) {
+    const dateStr = `2026-01-${String(d).padStart(2, "0")}`;
+    const personId = schedule[dateStr];
+    if (!personId) continue;
+
+    const day = getDay(new Date(2026, 0, d));
+    if (day === 6) satCounts[personId]++;
+    if (day === 0) sunCounts[personId]++;
   }
 
-  // Jan 2026 has 9 weekend days (5 Sat, 4 Sun)
-  // With 3 people, it should be 3-3-3.
-  assertEquals(weekendCounts["1"], 3);
-  assertEquals(weekendCounts["2"], 3);
-  assertEquals(weekendCounts["3"], 3);
+  // Jan 2026 has 5 Saturdays and 4 Sundays
+
+  // Saturday distribution should be [2, 2, 1]
+  const sats = Object.values(satCounts).sort();
+  assertEquals(sats, [1, 2, 2]);
+
+  // Sunday distribution should be [1, 1, 2]
+  const suns = Object.values(sunCounts).sort();
+  assertEquals(suns, [1, 1, 2]);
 });
 
 Deno.test("generateSchedule - scoring system (preferFairScore)", () => {

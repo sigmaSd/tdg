@@ -50,15 +50,35 @@ export function generateSchedule(
   const startDate = new Date(year, month, 1);
   const totalDays = getDaysInMonth(startDate);
 
+  // Pre-calculate total opportunities for Saturdays and Sundays to improve global fairness
+  const totalSatAvailable: Record<string, number> = {};
+  const totalSunAvailable: Record<string, number> = {};
+  people.forEach((p) => {
+    totalSatAvailable[p.id] = 0;
+    totalSunAvailable[p.id] = 0;
+    for (let d = 1; d <= totalDays; d++) {
+      const date = new Date(year, month, d);
+      const dateStr = format(date, "yyyy-MM-dd");
+      if (!p.unavailable.includes(dateStr)) {
+        if (getDay(date) === 6) totalSatAvailable[p.id]++;
+        if (getDay(date) === 0) totalSunAvailable[p.id]++;
+      }
+    }
+  });
+
   // Initialize tracking counts
   const dayCounts: Record<string, number> = {};
   const scoreCounts: Record<string, number> = {};
-  const weekendCounts: Record<string, number> = {};
+  const saturdayCounts: Record<string, number> = {};
+  const sundayCounts: Record<string, number> = {};
+  const lastAssigned: Record<string, number> = {};
 
   people.forEach((p) => {
     dayCounts[p.id] = 0;
     scoreCounts[p.id] = 0;
-    weekendCounts[p.id] = 0;
+    saturdayCounts[p.id] = 0;
+    sundayCounts[p.id] = 0;
+    lastAssigned[p.id] = -100;
   });
 
   let lastPersonId: string | null = null;
@@ -90,37 +110,52 @@ export function generateSchedule(
       if (candidates.length === 0) continue;
     }
 
-    // Fairness picking:
-    // 1. If fairWeekend enabled and it's a weekend, prioritize those with fewer weekend shifts.
-    // 2. If scoring enabled and preferFairScore, prioritize those with lower total score.
-    // 3. Otherwise prioritize those with fewer total days.
+    // Hierarchical candidate selection
+    let best = candidates;
 
-    let bestCandidates: Person[] = [];
+    if (isWeekend && settings.fairWeekend) {
+      // 1. Independent day-of-week distribution is top priority on weekends
+      const daySpecificCounts = isSaturday ? saturdayCounts : sundayCounts;
+      const minSpecific = Math.min(...best.map((p) => daySpecificCounts[p.id]));
+      best = best.filter((p) => daySpecificCounts[p.id] === minSpecific);
 
-    if (settings.fairWeekend && isWeekend) {
-      const minWeekends = Math.min(
-        ...candidates.map((p) => weekendCounts[p.id]),
-      );
-      bestCandidates = candidates.filter((p) =>
-        weekendCounts[p.id] === minWeekends
-      );
+      if (best.length > 1) {
+        // 1b. Opportunity Tie-break: Prioritize people with FEWER total available days of this type
+        // This ensures people who are unavailable later are picked early in the month.
+        const daySpecificAvail = isSaturday
+          ? totalSatAvailable
+          : totalSunAvailable;
+        const minAvail = Math.min(...best.map((p) => daySpecificAvail[p.id]));
+        best = best.filter((p) => daySpecificAvail[p.id] === minAvail);
+      }
     } else if (settings.enableScoring && settings.preferFairScore) {
-      const minScore = Math.min(...candidates.map((p) => scoreCounts[p.id]));
-      bestCandidates = candidates.filter((p) => scoreCounts[p.id] === minScore);
-    } else {
-      const minDays = Math.min(...candidates.map((p) => dayCounts[p.id]));
-      bestCandidates = candidates.filter((p) => dayCounts[p.id] === minDays);
+      // 1. Scoring fairness is top priority if enabled and no weekend rule applies
+      const minScore = Math.min(...best.map((p) => scoreCounts[p.id]));
+      best = best.filter((p) => scoreCounts[p.id] === minScore);
     }
 
-    // Randomly pick one from the best candidates
-    const chosenPerson =
-      bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
+    // 2. Workload (total day count) is the universal secondary factor to break ties
+    const minDays = Math.min(...best.map((p) => dayCounts[p.id]));
+    best = best.filter((p) => dayCounts[p.id] === minDays);
+
+    if (best.length > 1) {
+      // 3. Least Recently Assigned tie-breaker (reduces "clumps" of days)
+      const earliestLastAssignment = Math.min(
+        ...best.map((p) => lastAssigned[p.id]),
+      );
+      best = best.filter((p) => lastAssigned[p.id] === earliestLastAssignment);
+    }
+
+    // 4. Random tie-break (if multiple are still tied)
+    const chosenPerson = best[Math.floor(Math.random() * best.length)];
 
     // Assign
     schedule[dateString] = chosenPerson.id;
     dayCounts[chosenPerson.id]++;
     scoreCounts[chosenPerson.id] += dayScore;
-    if (isWeekend) weekendCounts[chosenPerson.id]++;
+    lastAssigned[chosenPerson.id] = day;
+    if (isSaturday) saturdayCounts[chosenPerson.id]++;
+    if (isSunday) sundayCounts[chosenPerson.id]++;
     lastPersonId = chosenPerson.id;
   }
 
