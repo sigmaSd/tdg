@@ -10,6 +10,7 @@ export default define.page(function App({ Component }) {
         <script type="module" src="/client.ts"></script>
         <link
           rel="stylesheet"
+          crossorigin="anonymous"
           href="https://unpkg.com/react-day-picker@9.0.0/dist/style.css"
         />
       </head>

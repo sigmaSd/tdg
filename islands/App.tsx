@@ -119,16 +119,19 @@ export default function App() {
     );
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    console.log("Generate button clicked. Settings:", settings.value);
     const year = viewDate.value.getFullYear();
     const month = viewDate.value.getMonth();
-    schedule.value = generateSchedule(
+    const newSchedule = await generateSchedule(
       people.value,
       year,
       month,
       settings.value,
       customScores.value,
     );
+    console.log("Schedule generated:", newSchedule);
+    schedule.value = newSchedule;
   };
 
   const changeMonth = (delta: number) => {

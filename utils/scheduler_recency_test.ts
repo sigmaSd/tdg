@@ -4,7 +4,7 @@ import { generateSchedule, Person, Settings } from "./scheduler.ts";
 const ALICE: Person = { id: "1", name: "Alice", unavailable: [], color: "red" };
 const BOB: Person = { id: "2", name: "Bob", unavailable: [], color: "blue" };
 
-Deno.test("Recency Tie-breaker - Alternates when day counts are equal", () => {
+Deno.test("Recency Tie-breaker - Alternates when day counts are equal", async () => {
   const settings: Settings = {
     avoidConsecutive: false, // Turn off to see if recency alone handles it
     enableScoring: false,
@@ -13,7 +13,7 @@ Deno.test("Recency Tie-breaker - Alternates when day counts are equal", () => {
   };
 
   // 4 days in March 2026
-  const schedule = generateSchedule([ALICE, BOB], 2026, 2, settings);
+  const schedule = await generateSchedule([ALICE, BOB], 2026, 2, settings);
 
   const dates = ["2026-03-01", "2026-03-02", "2026-03-03", "2026-03-04"];
   const sequence = dates.map((d) => schedule[d]);
@@ -43,7 +43,7 @@ Deno.test("Recency Tie-breaker - Alternates when day counts are equal", () => {
   );
 });
 
-Deno.test("Recency Tie-breaker - Handles 'catching up' with recency", () => {
+Deno.test("Recency Tie-breaker - Handles 'catching up' with recency", async () => {
   const settings: Settings = {
     avoidConsecutive: false,
     enableScoring: false,
@@ -60,7 +60,12 @@ Deno.test("Recency Tie-breaker - Handles 'catching up' with recency", () => {
     color: "green",
   };
 
-  const schedule = generateSchedule([ALICE, BOB, CHARLIE], 2026, 2, settings);
+  const schedule = await generateSchedule(
+    [ALICE, BOB, CHARLIE],
+    2026,
+    2,
+    settings,
+  );
 
   // Day 1: A or B.
   // Day 2: The other one (B or A).

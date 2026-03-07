@@ -5,7 +5,7 @@ import { getDay } from "date-fns";
 const ALICE: Person = { id: "1", name: "Alice", unavailable: [], color: "red" };
 const BOB: Person = { id: "2", name: "Bob", unavailable: [], color: "blue" };
 
-Deno.test("Opportunity Tie-breaker - Prioritizes person with fewer total chances", () => {
+Deno.test("Opportunity Tie-breaker - Prioritizes person with fewer total chances", async () => {
   const settings: Settings = {
     avoidConsecutive: false,
     enableScoring: false,
@@ -29,7 +29,7 @@ Deno.test("Opportunity Tie-breaker - Prioritizes person with fewer total chances
   const BOB_FULL = { ...BOB };
 
   // Run the generator
-  const schedule = generateSchedule(
+  const schedule = await generateSchedule(
     [ALICE_LIMITED, BOB_FULL],
     2026,
     2,
@@ -54,7 +54,7 @@ Deno.test("Opportunity Tie-breaker - Prioritizes person with fewer total chances
   assertEquals(schedule["2026-03-29"], "2");
 });
 
-Deno.test("Opportunity Tie-breaker - Handles complex unavailability like 'bedis'", () => {
+Deno.test("Opportunity Tie-breaker - Handles complex unavailability like 'bedis'", async () => {
   const settings: Settings = {
     avoidConsecutive: true,
     enableScoring: false,
@@ -80,7 +80,12 @@ Deno.test("Opportunity Tie-breaker - Handles complex unavailability like 'bedis'
     { id: "m", name: "m", unavailable: [], color: "yellow" },
   ];
 
-  const schedule = generateSchedule([BEDIS, ...OTHERS], 2026, 2, settings);
+  const schedule = await generateSchedule(
+    [BEDIS, ...OTHERS],
+    2026,
+    2,
+    settings,
+  );
 
   const bedisSundays = Object.entries(schedule).filter(([date, pid]) => {
     return pid === "bedis" && getDay(new Date(date)) === 0;

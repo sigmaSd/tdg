@@ -1,5 +1,5 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
-import { generateSchedule, Person, Settings } from "./scheduler.ts";
+import { DayScores, generateSchedule, Person, Settings } from "./scheduler.ts";
 import { getDay } from "date-fns";
 
 const PEOPLE: Person[] = [
@@ -8,7 +8,7 @@ const PEOPLE: Person[] = [
   { id: "3", name: "Charlie", unavailable: [], color: "bg-green-500" },
 ];
 
-Deno.test("generateSchedule - avoidConsecutive", () => {
+Deno.test("generateSchedule - avoidConsecutive", async () => {
   const settings: Settings = {
     avoidConsecutive: true,
     enableScoring: false,
@@ -16,7 +16,7 @@ Deno.test("generateSchedule - avoidConsecutive", () => {
     fairWeekend: false,
   };
 
-  const schedule = generateSchedule(PEOPLE, 2026, 0, settings); // Jan 2026 (31 days)
+  const schedule = await generateSchedule(PEOPLE, 2026, 0, settings); // Jan 2026 (31 days)
   const dates = Object.keys(schedule).sort();
 
   for (let i = 1; i < dates.length; i++) {
@@ -30,7 +30,7 @@ Deno.test("generateSchedule - avoidConsecutive", () => {
   }
 });
 
-Deno.test("generateSchedule - fairWeekend", () => {
+Deno.test("generateSchedule - fairWeekend", async () => {
   const settings: Settings = {
     avoidConsecutive: false,
     enableScoring: false,
@@ -38,7 +38,7 @@ Deno.test("generateSchedule - fairWeekend", () => {
     fairWeekend: true,
   };
 
-  const schedule = generateSchedule(PEOPLE, 2026, 0, settings);
+  const schedule = await generateSchedule(PEOPLE, 2026, 0, settings);
 
   const satCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
   const sunCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
@@ -64,7 +64,7 @@ Deno.test("generateSchedule - fairWeekend", () => {
   assertEquals(suns, [1, 1, 2]);
 });
 
-Deno.test("generateSchedule - scoring system (preferFairScore)", () => {
+Deno.test("generateSchedule - scoring system (preferFairScore)", async () => {
   const settings: Settings = {
     avoidConsecutive: false,
     enableScoring: true,
@@ -77,14 +77,20 @@ Deno.test("generateSchedule - scoring system (preferFairScore)", () => {
     "2026-01-01": 10,
   };
 
-  const schedule = generateSchedule(PEOPLE, 2026, 0, settings, customScores);
+  const schedule = await generateSchedule(
+    PEOPLE,
+    2026,
+    0,
+    settings,
+    customScores,
+  );
 
   const scoreCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
   const dayCounts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
 
   for (const [date, personId] of Object.entries(schedule)) {
     const isSunday = getDay(new Date(date)) === 0;
-    const score = customScores[date as keyof typeof customScores] ??
+    const score = (customScores as DayScores)[date] ??
       (isSunday ? 2 : 1);
     scoreCounts[personId] += score;
     dayCounts[personId]++;

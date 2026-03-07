@@ -1,12 +1,12 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { generateSchedule, Person } from "./scheduler.ts";
 
-Deno.test("generateSchedule - empty people returns empty schedule", () => {
-  const schedule = generateSchedule([], 2026, 0);
+Deno.test("generateSchedule - empty people returns empty schedule", async () => {
+  const schedule = await generateSchedule([], 2026, 0);
   assertEquals(schedule, {});
 });
 
-Deno.test("generateSchedule - respects unavailability", () => {
+Deno.test("generateSchedule - respects unavailability", async () => {
   const people: Person[] = [
     {
       id: "1",
@@ -18,7 +18,7 @@ Deno.test("generateSchedule - respects unavailability", () => {
   ];
 
   // Generate for Jan 2026
-  const schedule = generateSchedule(people, 2026, 0); // Month 0 is Jan
+  const schedule = await generateSchedule(people, 2026, 0); // Month 0 is Jan
 
   // Jan 1st is unavailable for Alice, so Bob MUST be assigned (or empty if no one available)
   // Bob is available.
@@ -28,7 +28,7 @@ Deno.test("generateSchedule - respects unavailability", () => {
   assert(schedule["2026-01-01"] !== "1");
 });
 
-Deno.test("generateSchedule - fair distribution", () => {
+Deno.test("generateSchedule - fair distribution", async () => {
   const people: Person[] = [
     { id: "1", name: "A", unavailable: [], color: "bg-red-500" },
     { id: "2", name: "B", unavailable: [], color: "bg-blue-500" },
@@ -36,7 +36,7 @@ Deno.test("generateSchedule - fair distribution", () => {
 
   // Jan 2026 has 31 days.
   // 31 / 2 = 15.5. So one gets 15, one gets 16.
-  const schedule = generateSchedule(people, 2026, 0);
+  const schedule = await generateSchedule(people, 2026, 0);
 
   const counts: Record<string, number> = { "1": 0, "2": 0 };
   Object.values(schedule).forEach((id) => counts[id]++);
@@ -47,7 +47,7 @@ Deno.test("generateSchedule - fair distribution", () => {
   );
 });
 
-Deno.test("generateSchedule - partial availability", () => {
+Deno.test("generateSchedule - partial availability", async () => {
   const people: Person[] = [
     { id: "1", name: "A", unavailable: [], color: "bg-red-500" }, // Available all month
     { id: "2", name: "B", unavailable: [], color: "bg-blue-500" }, // Available all month
@@ -55,7 +55,7 @@ Deno.test("generateSchedule - partial availability", () => {
   ];
   // Make C unavailable for 30 days?
   // Let's just run basic check
-  const schedule = generateSchedule(people, 2026, 0);
+  const schedule = await generateSchedule(people, 2026, 0);
 
   const counts: Record<string, number> = { "1": 0, "2": 0, "3": 0 };
   Object.values(schedule).forEach((id) => counts[id]++);
