@@ -18,11 +18,6 @@ export default define.page(function App({ Component, state }) {
         {state.clientScript && (
           <script type="module" src={state.clientScript}></script>
         )}
-        <link
-          rel="stylesheet"
-          crossorigin="anonymous"
-          href="https://unpkg.com/react-day-picker@9.0.0/dist/style.css"
-        />
       </head>
       <body>
         <Component />
