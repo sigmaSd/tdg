@@ -3,14 +3,22 @@ import { fresh } from "@fresh/plugin-vite";
 import tailwindcss from "@tailwindcss/vite";
 import { z3Plugin } from "@sigmasd/vite-plugin-z3";
 import { VitePWA } from "vite-plugin-pwa";
+import { execSync } from "node:child_process";
+
+const commitCount = execSync("git rev-list --count HEAD").toString().trim();
+console.log(`\n  Building Tableau de Garde v${commitCount}\n`);
 
 export default defineConfig({
+  define: {
+    __APP_VERSION__: JSON.stringify(commitCount),
+  },
   plugins: [
     z3Plugin({ generateExample: false }),
     fresh(),
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: false,
       includeAssets: [
         "favicon.ico",
         "logo.svg",

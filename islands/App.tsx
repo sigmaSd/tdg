@@ -216,7 +216,10 @@ export default function App() {
         <h1 class="text-4xl font-extrabold text-blue-700 tracking-tight">
           Tableau de Garde
         </h1>
-        <p class="text-gray-500 mt-2">Automatic & Fair Schedule Generator</p>
+        <p class="text-gray-500 mt-2">
+          Automatic & Fair Schedule Generator
+          <span class="ml-2 text-xs text-gray-400">v{__APP_VERSION__}</span>
+        </p>
       </header>
 
       <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">

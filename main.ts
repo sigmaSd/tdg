@@ -7,6 +7,7 @@ export const app = new App<State>();
 const PWA_FILES: Record<string, string> = {
   "/sw.js": "application/javascript",
   "/manifest.webmanifest": "application/manifest+json",
+  "/registerSW.js": "application/javascript",
 };
 
 app.use(async (ctx) => {

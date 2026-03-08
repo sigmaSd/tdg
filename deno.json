@@ -67,5 +67,13 @@
     "types": [
       "vite/client"
     ]
+  },
+  "deploy": {
+    "project": "5927836e-9992-441a-83f7-68bea44f1bd8",
+    "exclude": [
+      "**/node_modules"
+    ],
+    "include": ["_fresh"],
+    "entrypoint": "_fresh/server.js"
   }
 }
