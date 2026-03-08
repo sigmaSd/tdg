@@ -2,6 +2,8 @@
 
 Automatic & Fair Schedule Generator.
 
+https://tableau-garde.deno.dev/
+
 ![Tableau de Garde Screenshot](docs/images/screenshot.png)
 
 ## Features
