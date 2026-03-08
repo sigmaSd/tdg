@@ -86,20 +86,6 @@ export default defineConfig({
               },
             },
           },
-          {
-            urlPattern: /^https:\/\/unpkg\.com\/react-day-picker.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "external-styles",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
         ],
       },
     }),
