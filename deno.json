@@ -34,6 +34,7 @@
     "vite": "npm:vite@7.3.1",
     "tailwindcss": "npm:tailwindcss@^4.2.1",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.2.1",
+    "vite-plugin-pwa": "npm:vite-plugin-pwa@^1.2.0",
     "z3-solver": "npm:z3-solver@4.16.0",
     "@sigmasd/vite-plugin-z3": "jsr:@sigmasd/vite-plugin-z3@^0.7.0",
     "@sigmasd/vite-plugin-z3/runtime": "jsr:@sigmasd/vite-plugin-z3@^0.7.0/runtime"

@@ -3,7 +3,48 @@ import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
 
+// Serve PWA files (sw.js, manifest.webmanifest, workbox-*.js) from _fresh/client/
+const PWA_FILES: Record<string, string> = {
+  "/sw.js": "application/javascript",
+  "/manifest.webmanifest": "application/manifest+json",
+};
+
 app.use(async (ctx) => {
+  const url = new URL(ctx.req.url);
+  const pathname = url.pathname;
+
+  // Serve known PWA files
+  if (PWA_FILES[pathname]) {
+    try {
+      const content = await Deno.readFile(`_fresh/client${pathname}`);
+      return new Response(content, {
+        headers: {
+          "Content-Type": PWA_FILES[pathname],
+          "Cross-Origin-Embedder-Policy": "require-corp",
+          "Cross-Origin-Opener-Policy": "same-origin",
+        },
+      });
+    } catch {
+      // Fall through if file doesn't exist (dev mode)
+    }
+  }
+
+  // Serve workbox runtime (filename has a hash)
+  if (pathname.startsWith("/workbox-") && pathname.endsWith(".js")) {
+    try {
+      const content = await Deno.readFile(`_fresh/client${pathname}`);
+      return new Response(content, {
+        headers: {
+          "Content-Type": "application/javascript",
+          "Cross-Origin-Embedder-Policy": "require-corp",
+          "Cross-Origin-Opener-Policy": "same-origin",
+        },
+      });
+    } catch {
+      // Fall through
+    }
+  }
+
   const resp = await ctx.next();
   try {
     resp.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
