@@ -6,7 +6,11 @@
     "build": "vite build",
     "start": "deno serve -A _fresh/server.js",
     "update": "deno run -A -r jsr:@fresh/update .",
-    "test-browser": "deno run -A tests/run.ts"
+    "test-browser": "deno run -A tests/run.ts",
+    "deploy": {
+      "dependencies": ["build"],
+      "command": "deployctl deploy --prod"
+    }
   },
   "lint": {
     "rules": {
