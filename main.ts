@@ -3,6 +3,21 @@ import { define, type State } from "./utils.ts";
 
 export const app = new App<State>();
 
+app.use(async (ctx) => {
+  const resp = await ctx.next();
+  try {
+    resp.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
+    resp.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+    return resp;
+  } catch {
+    // If response is immutable (e.g. from staticFiles), create a clone
+    const newResp = new Response(resp.body, resp);
+    newResp.headers.set("Cross-Origin-Embedder-Policy", "require-corp");
+    newResp.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+    return newResp;
+  }
+});
+
 app.use(staticFiles());
 
 // Pass a shared value from a middleware

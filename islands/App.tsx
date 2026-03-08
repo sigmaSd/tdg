@@ -1,5 +1,6 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
+import "../assets/styles.css";
 import {
   DayScores,
   generateSchedule,

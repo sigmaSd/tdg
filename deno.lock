@@ -8,7 +8,7 @@
     "jsr:@fresh/core@2": "2.2.0",
     "jsr:@fresh/core@^2.2.0": "2.2.0",
     "jsr:@fresh/plugin-vite@^1.0.8": "1.0.8",
-    "jsr:@sigmasd/vite-plugin-z3@0.6": "0.6.0",
+    "jsr:@sigmasd/vite-plugin-z3@0.7": "0.7.0",
     "jsr:@std/assert@*": "1.0.19",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/assert@^1.0.19": "1.0.19",
@@ -117,8 +117,8 @@
         "npm:vite@^7.1.4"
       ]
     },
-    "@sigmasd/vite-plugin-z3@0.6.0": {
-      "integrity": "a1b16047d395b545e60bfa6124596ef71e4c81a4e01995a94cd81235a0923038",
+    "@sigmasd/vite-plugin-z3@0.7.0": {
+      "integrity": "73ac7b3688e768f69c69c60ef5c9e6f6b6dc8b9081d67f5b67aa08ea3cf415dc",
       "dependencies": [
         "npm:esbuild@~0.27.3",
         "npm:vite@7"
@@ -1511,7 +1511,7 @@
     "dependencies": [
       "jsr:@fresh/core@^2.2.0",
       "jsr:@fresh/plugin-vite@^1.0.8",
-      "jsr:@sigmasd/vite-plugin-z3@0.6",
+      "jsr:@sigmasd/vite-plugin-z3@0.7",
       "jsr:@std/assert@^1.0.19",
       "npm:@preact/signals@^2.8.1",
       "npm:@tailwindcss/vite@^4.2.1",
