@@ -6,13 +6,26 @@ import { VitePWA } from "vite-plugin-pwa";
 import { execSync } from "node:child_process";
 
 const commitCount = execSync("git rev-list --count HEAD").toString().trim();
-console.log(`\n  Building Tableau de Garde v${commitCount}\n`);
+
+let versionLogged = false;
+function logVersion() {
+  return {
+    name: "log-version",
+    buildStart() {
+      if (!versionLogged) {
+        console.log(`\n  Building Tableau de Garde v${commitCount}\n`);
+        versionLogged = true;
+      }
+    },
+  };
+}
 
 export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(commitCount),
   },
   plugins: [
+    logVersion(),
     z3Plugin({ generateExample: false }),
     fresh(),
     tailwindcss(),
