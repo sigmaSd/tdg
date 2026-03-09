@@ -1,5 +1,6 @@
 import { assertEquals, assertNotEquals } from "@std/assert";
-import { generateSchedule, Person, Settings } from "../utils/scheduler.ts";
+import { generateSchedule } from "../scheduler/scheduler.ts";
+import type { Person, Settings } from "../scheduler/types.ts";
 import { getDay } from "date-fns";
 import { browserTest } from "./utils.ts";
 

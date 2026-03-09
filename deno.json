@@ -12,44 +12,30 @@
       "command": "deployctl deploy --prod"
     }
   },
-  "lint": {
-    "rules": {
-      "tags": [
-        "fresh",
-        "recommended"
-      ]
-    }
-  },
-  "exclude": [
-    "**/_fresh/*"
-  ],
+  "lint": { "rules": { "tags": ["fresh", "recommended"] } },
+  "exclude": ["**/_fresh/*", "static/scheduler-worker.js"],
   "imports": {
     "@/": "./",
     "@std/assert": "jsr:@std/assert@^1.0.19",
     "fresh": "jsr:@fresh/core@^2.2.0",
+    "playwright": "npm:playwright@^1.58.2",
     "preact": "npm:preact@^10.28.4",
     "preact/compat": "npm:preact@^10.28.4/compat",
     "react": "npm:preact@^10.28.4/compat",
     "react-dom": "npm:preact@^10.28.4/compat",
     "react-day-picker": "npm:react-day-picker@^9.14.0",
     "date-fns": "npm:date-fns@^4.1.0",
-    "@preact/signals": "npm:@preact/signals@^2.8.1",
+    "@preact/signals": "npm:@preact/signals@^2.8.2",
     "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@^1.0.8",
     "vite": "npm:vite@7.3.1",
     "tailwindcss": "npm:tailwindcss@^4.2.1",
     "@tailwindcss/vite": "npm:@tailwindcss/vite@^4.2.1",
     "vite-plugin-pwa": "npm:vite-plugin-pwa@^1.2.0",
     "z3-solver": "npm:z3-solver@4.16.0",
-    "@sigmasd/vite-plugin-z3": "jsr:@sigmasd/vite-plugin-z3@^0.7.0",
-    "@sigmasd/vite-plugin-z3/runtime": "jsr:@sigmasd/vite-plugin-z3@^0.7.0/runtime"
+    "@sigmasd/vite-plugin-z3": "jsr:@sigmasd/vite-plugin-z3@^0.10.0"
   },
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.asynciterable",
-      "dom.iterable",
-      "deno.ns"
-    ],
+    "lib": ["dom", "dom.asynciterable", "dom.iterable", "deno.ns"],
     "jsx": "precompile",
     "jsxImportSource": "preact",
     "jsxPrecompileSkipElements": [
@@ -68,15 +54,11 @@
       "noscript",
       "template"
     ],
-    "types": [
-      "vite/client"
-    ]
+    "types": ["vite/client"]
   },
   "deploy": {
     "project": "5927836e-9992-441a-83f7-68bea44f1bd8",
-    "exclude": [
-      "**/node_modules"
-    ],
+    "exclude": ["**/node_modules"],
     "include": ["_fresh"],
     "entrypoint": "_fresh/server.js"
   }

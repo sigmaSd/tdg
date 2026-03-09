@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { generateSchedule, Person } from "../utils/scheduler.ts";
+import { generateSchedule } from "../scheduler/scheduler.ts";
+import type { Person } from "../scheduler/types.ts";
 import { browserTest } from "./utils.ts";
 
 browserTest(

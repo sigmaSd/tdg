@@ -1,4 +1,4 @@
-import { Person } from "../utils/scheduler.ts";
+import type { Person } from "../scheduler/types.ts";
 import { useState } from "preact/hooks";
 import UnavailabilityPicker from "../islands/UnavailabilityPicker.tsx";
 

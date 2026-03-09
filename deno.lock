@@ -8,7 +8,7 @@
     "jsr:@fresh/core@2": "2.2.0",
     "jsr:@fresh/core@^2.2.0": "2.2.0",
     "jsr:@fresh/plugin-vite@^1.0.8": "1.0.8",
-    "jsr:@sigmasd/vite-plugin-z3@0.7": "0.7.0",
+    "jsr:@sigmasd/vite-plugin-z3@0.10": "0.10.0",
     "jsr:@std/assert@*": "1.0.19",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/assert@^1.0.19": "1.0.19",
@@ -34,8 +34,8 @@
     "npm:@babel/preset-react@^7.27.1": "7.28.5_@babel+core@7.29.0",
     "npm:@mjackson/node-fetch-server@0.7": "0.7.0",
     "npm:@opentelemetry/api@^1.9.0": "1.9.0",
-    "npm:@preact/signals@^2.2.1": "2.8.1_preact@10.28.4",
-    "npm:@preact/signals@^2.8.1": "2.8.1_preact@10.28.4",
+    "npm:@preact/signals@^2.2.1": "2.8.2_preact@10.28.4",
+    "npm:@preact/signals@^2.8.2": "2.8.2_preact@10.28.4",
     "npm:@prefresh/vite@^2.4.8": "2.4.12_preact@10.28.4_vite@7.3.1",
     "npm:@tailwindcss/vite@^4.2.1": "4.2.1_vite@7.3.1",
     "npm:date-fns@*": "4.1.0",
@@ -118,8 +118,8 @@
         "npm:vite@^7.1.4"
       ]
     },
-    "@sigmasd/vite-plugin-z3@0.7.0": {
-      "integrity": "73ac7b3688e768f69c69c60ef5c9e6f6b6dc8b9081d67f5b67aa08ea3cf415dc",
+    "@sigmasd/vite-plugin-z3@0.10.0": {
+      "integrity": "6c3af725dfb3268aa7684aaee596e04cba3e3fd601c55525990edcb39f670118",
       "dependencies": [
         "npm:esbuild@~0.27.3",
         "npm:vite@7"
@@ -1447,11 +1447,11 @@
     "@opentelemetry/api@1.9.0": {
       "integrity": "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="
     },
-    "@preact/signals-core@1.13.0": {
-      "integrity": "sha512-slT6XeTCAbdql61GVLlGU4x7XHI7kCZV5Um5uhE4zLX4ApgiiXc0UYFvVOKq06xcovzp7p+61l68oPi563ARKg=="
+    "@preact/signals-core@1.14.0": {
+      "integrity": "sha512-AowtCcCU/33lFlh1zRFf/u+12rfrhtNakj7UpaGEsmMwUKpKWMVvcktOGcwBBNiB4lWrZWc01LhiyyzVklJyaQ=="
     },
-    "@preact/signals@2.8.1_preact@10.28.4": {
-      "integrity": "sha512-wX6U0SpcCukZTJBs5ChljvBZb3XmYzA5gd4vKHgX8wZZKaQCo2WHtmThdLx+mcVvlBa5u3XShC7ffbETJD4BiQ==",
+    "@preact/signals@2.8.2_preact@10.28.4": {
+      "integrity": "sha512-gym5yoa64c+0w2kL7zRAAjY548qzWXbbuOfjsK9F1nWrEqooDwyWnih5SNdonjhQSp27zUqYh7UrxIRnkCyFCA==",
       "dependencies": [
         "@preact/signals-core",
         "preact"
@@ -3578,11 +3578,12 @@
     "dependencies": [
       "jsr:@fresh/core@^2.2.0",
       "jsr:@fresh/plugin-vite@^1.0.8",
-      "jsr:@sigmasd/vite-plugin-z3@0.7",
+      "jsr:@sigmasd/vite-plugin-z3@0.10",
       "jsr:@std/assert@^1.0.19",
-      "npm:@preact/signals@^2.8.1",
+      "npm:@preact/signals@^2.8.2",
       "npm:@tailwindcss/vite@^4.2.1",
       "npm:date-fns@^4.1.0",
+      "npm:playwright@^1.58.2",
       "npm:preact@^10.28.4",
       "npm:react-day-picker@^9.14.0",
       "npm:tailwindcss@^4.2.1",

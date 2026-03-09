@@ -1,13 +1,13 @@
 import { useSignal } from "@preact/signals";
 import { useEffect } from "preact/hooks";
 import "../assets/styles.css";
-import {
+import { generateSchedule } from "../scheduler/scheduler.ts";
+import type {
   DayScores,
-  generateSchedule,
   Person,
   Schedule,
   Settings,
-} from "../utils/scheduler.ts";
+} from "../scheduler/types.ts";
 import { PersonList } from "../components/PersonList.tsx";
 import { Calendar } from "../components/Calendar.tsx";
 import { SettingsMenu } from "../components/SettingsMenu.tsx";
@@ -149,9 +149,6 @@ export default function App() {
         settings.value,
         customScores.value,
         fixedAssignments.value,
-        (current, total) => {
-          progress.value = { current, total };
-        },
       );
       schedule.value = newSchedule;
     } catch (err) {

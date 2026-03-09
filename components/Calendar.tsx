@@ -1,4 +1,9 @@
-import { DayScores, Person, Schedule, Settings } from "../utils/scheduler.ts";
+import type {
+  DayScores,
+  Person,
+  Schedule,
+  Settings,
+} from "../scheduler/types.ts";
 import {
   eachDayOfInterval,
   endOfMonth,

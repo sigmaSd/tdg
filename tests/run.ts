@@ -1,5 +1,5 @@
 // tests/run.ts
-import { chromium } from "npm:playwright@^1.58.2";
+import { chromium } from "playwright";
 import { TestResult } from "./utils.ts";
 import { runUITests } from "./ui_happy_path.ts";
 
@@ -82,9 +82,9 @@ async function runTests() {
     // 1. Run Logic Tests in Browser
     console.log("Running browser logic tests...");
     page.on("console", (msg) => {
-        if (msg.text().startsWith("[browser]")) {
-            console.log(msg.text());
-        }
+      if (msg.text().startsWith("[browser]")) {
+        console.log(msg.text());
+      }
     });
 
     // Navigate to the test page
@@ -92,51 +92,50 @@ async function runTests() {
 
     // Wait for tests to finish (increased timeout to 2 minutes as Z3 can be slow)
     await page.waitForFunction(
-    () => (window as unknown as TestWindow).TESTS_FINISHED === true,
-    {
+      () => (window as unknown as TestWindow).TESTS_FINISHED === true,
+      {
         timeout: 120000,
-    },
+      },
     );
 
     const results = await page.evaluate(() =>
-    (window as unknown as TestWindow).TEST_RESULTS
+      (window as unknown as TestWindow).TEST_RESULTS
     );
     console.log("\n--- BROWSER LOGIC TEST RESULTS ---");
     let failed = 0;
     if (results) {
-    for (const res of results) {
+      for (const res of results) {
         if (res.success) {
-        console.log(`✅ ${res.name} (${res.duration.toFixed(0)}ms)`);
+          console.log(`✅ ${res.name} (${res.duration.toFixed(0)}ms)`);
         } else {
-        console.log(`❌ ${res.name} (${res.duration.toFixed(0)}ms)`);
-        console.log(`   Error: ${res.error}`);
-        failed++;
+          console.log(`❌ ${res.name} (${res.duration.toFixed(0)}ms)`);
+          console.log(`   Error: ${res.error}`);
+          failed++;
         }
-    }
+      }
     }
     console.log("----------------------------");
     console.log(
-    `Total: ${results?.length || 0}, Passed: ${
+      `Total: ${results?.length || 0}, Passed: ${
         (results?.length || 0) - failed
-    }, Failed: ${failed}`,
+      }, Failed: ${failed}`,
     );
 
     if (failed > 0) {
-    console.error("Logic tests failed. Skipping UI tests.");
-    Deno.exit(1);
+      console.error("Logic tests failed. Skipping UI tests.");
+      Deno.exit(1);
     }
 
     // 2. Run UI Happy Path Tests
     try {
-        await runUITests(page);
+      await runUITests(page);
     } catch (uiErr) {
-        console.error("\n❌ UI Happy Path Tests failed:");
-        console.error(uiErr);
-        Deno.exit(1);
+      console.error("\n❌ UI Happy Path Tests failed:");
+      console.error(uiErr);
+      Deno.exit(1);
     }
 
     console.log("\n✅ ALL TESTS PASSED SUCCESSFULLY");
-
   } catch (err) {
     console.error("\nTest execution failed:");
     console.error(err);

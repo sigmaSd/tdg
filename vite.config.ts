@@ -26,7 +26,13 @@ export default defineConfig({
   },
   plugins: [
     logVersion(),
-    z3Plugin({ generateExample: false }),
+    z3Plugin({
+      generateExample: false,
+      workers: {
+        "scheduler-worker": "scheduler/scheduler.worker.ts",
+      },
+      registryPath: "scheduler/z3-workers.ts",
+    }),
     fresh(),
     tailwindcss(),
     VitePWA({

@@ -1,4 +1,4 @@
-import { Settings } from "../utils/scheduler.ts";
+import type { Settings } from "../scheduler/types.ts";
 
 interface SettingsMenuProps {
   settings: Settings;
